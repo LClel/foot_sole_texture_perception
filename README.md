@@ -42,13 +42,6 @@ All code within this repository is authored by Luke Cleland unless otherwise spe
 * Seaborn 0.11.1
 * Scipy 1.6.1
 * Scikit-learn - 0.23.2    
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
-* FootSim - date 20/10/2022
-
-
-## Additional files required
-FootSim is required to process the raw data. Public FootSim repository can be found at https://github.com/ActiveTouchLab/footsim-python.
-Code for "Complexity of spatiotemporal plantar pressure patterns during everyday behaviours" is built upon that in the FootSim repository
 
 ## Acknowledgements
 LC is supported by a studentship from the MRC Discovery Medicine North (DiMeN)
