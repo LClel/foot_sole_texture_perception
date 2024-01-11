@@ -31,7 +31,7 @@ All code within this repository is authored by Luke Cleland unless otherwise spe
 ### Data on the Open Science Framework ()
 * `/raw_data` contains all raw data files relating to participant ratings. Should be saved in a folder named `Data` within this repository
      - `/participant id`
-             - `/.csv` raw data files
+             - `/.xslx` raw data files
 * `/processed_data` contains files with pre-processed data in will be saved following the processing pipeline. 
 
 ## Versions:
