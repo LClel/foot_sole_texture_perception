@@ -1,3 +1,7 @@
+""" Analysis pipeline to generate all stats and figures in the associated paper
+Author: Luke Cleland, ORCID: 0000-0001-8486-2780. GitHub: LClel
+"""
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -5,13 +9,38 @@ import scipy.stats
 import seaborn as sns
 from analysis_functions import *
 
-
+# calculate and print participant mean (std) age
 participant_demographics()
 
+# import  raw data and collate into one dataframe
 #df = collate_all_data_ratio(['PPT_001','PPT_002','PPT_003', 'PPT_004', 'PPT_005', 'PPT_006', 'PPT_007',\
 #                             'PPT_008','PPT_009','PPT_010','PPT_011', 'PPT_012', 'PPT_013','PPT_014','PPT_015',\
 #                             'PPT_016', 'PPT_017','PPT_018','PPT_019','PPT_020'])
 
+# save dataframe with all participant data as a .csv
 #df.to_csv('../processed_data/collated_data.csv')
 
+# load in dataframe with all participant data
 df = pd.read_csv('../processed_data/collated_data.csv')
+
+# calculate average intersubject correlation for each condition-metric combination
+average_intersubject_correlation(df)
+
+# calculate correlations for each metric across conditions
+correlate_metrics_between_conditions(df)
+
+# run Friedman non parametric repeated measures ANOVA and save result to .csv
+non_parametric_rm_ANOVA(df)
+
+# run Wilcoxen post-hoc non parametric repeated measures t-test and save result to .csv
+non_parametric_rm_t_test(df)
+
+# plot mean rating across all conditions with significance indicators
+plot_standard_error(df)
+
+# calculate correlations for each metric within conditions
+correlate_metrics_within_conditions(df)
+
+# calculate multiple regression on stability
+# plot scatterplots for each metric and it's relation to stability
+multiple_regression(df)
