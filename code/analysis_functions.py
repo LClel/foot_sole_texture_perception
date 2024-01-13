@@ -966,3 +966,87 @@ def calculate_mean_ppt_level_correlations_metrics_within_conditions():
 
     # save result as .csv file
     mean_corr_df.to_csv('../stats_output/mean_ppt_correlation_metrics_within_conditions.csv')
+
+
+def multiple_regression(df):
+    """ Run a multiple regresison to calculate the contribution of each of the 3 textural dimensions on particpants'
+    rating of stability.
+    Plot metric relation to condition as scatterplots
+
+    :param df:
+    :param outcome_metric:
+    :return:
+    """
+
+    # use only trial 2 so one value per texture per participant
+    df = df[df['Trial'] == 2]
+
+    # sort data
+    df = df.sort_values(by=['Participant', 'Texture'])
+
+    # extract a single value per participant for each metric
+    stability = df[(df['Condition'] == 'walking') & (df['Metric'] == 'stability')].rename(
+        columns={'Mean ratio': 'Stability'}).groupby(['Texture']).mean()['Stability'].values
+    roughness = df[(df['Condition'] == 'walking') & (df['Metric'] == 'roughness')].rename(
+        columns={'Mean ratio': 'Roughness'}).groupby(['Texture']).mean()['Roughness'].values
+    hardness = df[(df['Condition'] == 'walking') & (df['Metric'] == 'hardness')].rename(
+        columns={'Mean ratio': 'Hardness'}).groupby(['Texture']).mean()['Hardness'].values
+    slipperiness = df[(df['Condition'] == 'walking') & (df['Metric'] == 'slipperiness')].rename(
+        columns={'Mean ratio': 'Slipperiness'}).groupby(['Texture']).mean()['Slipperiness'].values
+
+    # create simple dataframe with only necessary data
+    df_new = pd.DataFrame(
+        {'Roughness': roughness, 'Hardness': hardness, 'Slipperiness': slipperiness, 'Stability': stability})
+
+    # define input measures
+    X = df_new[['Roughness', 'Hardness', 'Slipperiness']]
+    # define outcome measure
+    Y = df_new[['Stability']]
+
+    # run regression analysis
+    regr = linear_model.LinearRegression()
+    regr.fit(X, Y)
+    X = sm.add_constant(X)
+    est = sm.OLS(Y, X).fit()
+    res = est.summary()
+    print(res)
+
+    # define plot parameters
+    plt.close('all')
+    fig = plt.figure(constrained_layout=True, dpi=300, figsize=(6, 2))
+    plt.rcParams.update({'font.size': 5})
+    gs = GridSpec(1, 3, figure=fig)
+    ax1 = fig.add_subplot(gs[0])
+    ax2 = fig.add_subplot(gs[1])
+    ax3 = fig.add_subplot(gs[2])
+
+    # plot scatterplot between roughness and stability
+    sns.scatterplot(x=roughness, y=stability, color='green', ax=ax1, s=15)
+    sns.despine(ax=ax1)
+    ax1.set_xlim(0, 3.5)
+    ax1.set_ylim(0, 2)
+    ax1.set_xticks([0, 1, 2, 3])
+    ax1.set_yticks([0, 1, 2])
+    ax1.set_ylabel('Stability')
+    ax1.set_xlabel('Smooth - rough')
+
+    # plot scatterplot between hardness and stability
+    sns.scatterplot(x=hardness, y=stability, color='blue', ax=ax2, s=15)
+    sns.despine(ax=ax2)
+    ax2.set_xlim(0, 3.5)
+    ax2.set_ylim(0, 2)
+    ax2.set_xticks([0, 1, 2, 3])
+    ax2.set_yticks([0, 1, 2])
+    ax2.set_xlabel('Soft - hard')
+
+    # plot scatterplot between slipperiness and stability
+    sns.scatterplot(x=slipperiness, y=stability, color='red', ax=ax3, s=15)
+    sns.despine(ax=ax3)
+    ax3.set_xlim(0, 3.5)
+    ax3.set_ylim(0, 2)
+    ax3.set_xticks([0, 1, 2, 3])
+    ax3.set_yticks([0, 1, 2])
+    ax3.set_xlabel('Slippery - sticky')
+
+    # save plot
+    plt.savefig('../figures/single_value_per_texture_relation_to_stability.png')
