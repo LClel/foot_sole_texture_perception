@@ -739,3 +739,230 @@ def mean_ratio_textures(df):
     plt.tight_layout()
     # save figure
     plt.savefig('../figures/mean_ratio_per_texture.png')
+
+
+def correlate_metrics_within_conditions(df):
+    """ Run a correlation for each metric within each condition
+
+    :param df:
+    :return:
+    """
+
+    # only use the mean ratio per participant
+    df = df[df['Trial'] == 2.0]
+
+    # define plot parameters
+    fig = plt.figure(constrained_layout=True, dpi=300, figsize=(8, 2))
+    plt.rcParams.update({'font.size': 5})
+    gs = GridSpec(1, 3, figure=fig)
+    ax1 = fig.add_subplot(gs[0])
+    ax2 = fig.add_subplot(gs[1])
+    ax3 = fig.add_subplot(gs[2])
+
+    axes = [ax1, ax2, ax3]
+
+    i = 0
+    # loop through conditions
+    for condition in dimensions:
+
+        # extract data for relevant condition
+        condition_df = df[df['Condition'] == condition]
+
+        # remove participant 12 hand condition
+        if condition == 'hand':
+            condition_df = condition_df[condition_df['Participant'] != 'PPT_012']
+
+        # remove condition column
+        condition_df.drop(columns=['Condition'])
+
+        # create pivot table to rearrange data
+        pivoted = pd.pivot_table(condition_df, values='Mean ratio', index=['Texture'],
+                                 columns=['Metric'])
+
+        # plot correlation matric
+        sns.heatmap(pivoted.corr(method='spearman'), vmin=0., vmax=1., ax=axes[i], square=True, annot=True, fmt=".2f")
+        axes[i].set_title(condition)
+
+        i += 1
+
+    # save plot
+    plt.savefig('../figures/single_value_per_texture_correlating_metrics_within_conditions.png')
+
+
+    # ------------------------- Remove stability from correlation matrix ------------------------- #
+    # define plot parameters
+    fig = plt.figure(constrained_layout=True, dpi=300, figsize=(8, 2))
+    plt.rcParams.update({'font.size': 5})
+    gs = GridSpec(1, 3, figure=fig)
+    ax1 = fig.add_subplot(gs[0])
+    ax2 = fig.add_subplot(gs[1])
+    ax3 = fig.add_subplot(gs[2])
+
+    axes = [ax1, ax2, ax3]
+
+    # remove stability
+    no_stab = df[df['Metric'] != 'stability']
+
+    i = 0
+    # loop through conditions
+    for condition in dimensions:
+
+        # extract data for relevant condition
+        condition_df = no_stab[no_stab['Condition'] == condition]
+
+        # remove participant 12 hand condition
+        if condition == 'hand':
+            condition_df = condition_df[condition_df['Participant'] != 'PPT_012']
+
+        # drop condition column
+        condition_df.drop(columns=['Condition'])
+
+        # create pivot table to reararnge data
+        pivoted = pd.pivot_table(condition_df, values='Mean ratio', index=['Texture'],
+                                 columns=['Metric'])
+
+        # plot correlation matrix
+        sns.heatmap(pivoted.corr(method='spearman'), vmin=0., vmax=1., ax=axes[i], square=True, annot=True, fmt=".2f")
+        axes[i].set_title(condition)
+
+        i += 1
+
+    # save plot
+    plt.savefig('../figures/single_value_no_stability_correlating_metrics_within_conditions.png')
+
+    # ---------------------------- run correlation using scipy ---------------------------- #
+    # create dataframe to store result
+    correlation_df = pd.DataFrame({'Condition': [], 'covariate1': [], 'covariate2': [], 'r':[], 'p': []})
+
+    # loop through conditions
+    for condition in dimensions:
+
+        # extract data for relevant condition
+        condition_df = df[df['Condition'] == condition]
+
+        # remove participant 12 hand condition
+        if condition == 'hand':
+            condition_df = condition_df[condition_df['Participant'] != 'PPT_012']
+
+        # loop through metrics
+        for metric1 in dimensions[condition]:
+
+            # extract data for relevant metric and sort by texture number
+            metric_df_1 = condition_df[condition_df['Metric'] == metric1]
+            metric_df_1 = metric_df_1.sort_values(by=['Texture'])
+
+            # loop through metrics
+            for metric2 in dimensions[condition]:
+
+                # extract data for relevant metric and sort by texture number
+                metric_df_2 = condition_df[condition_df['Metric'] == metric2]
+                metric_df_2 = metric_df_2.sort_values(by=['Texture'])
+
+                # run spearmans rank correlation
+                corr = stats.spearmanr(metric_df_1['Mean ratio'], metric_df_2['Mean ratio'])
+
+                # store data in dataframe
+                df_single = pd.DataFrame({'Condition': [condition], 'covariate1': [metric1], 'covariate2': [metric2], \
+                                          'r': [corr[0]], 'p': [corr[1]]})
+
+                # join dataframes
+                correlation_df = pd.concat([correlation_df, df_single])
+
+    # save as .csv file
+    correlation_df.to_csv('../stats_output/single_value_per_texture_correlating_metrics_within_conditions.csv')
+
+
+def inter_participant_correlate_metrics_within_conditions(df):
+    """ Run a correlation for each metric within each condition
+
+    :param df:
+    :return:
+    """
+
+    # only use the mean ratio per participant
+    df = df[df['Trial'] == 2.0]
+
+    # create dataframe to store result
+    correlation_df = pd.DataFrame({'Condition': [], 'covariate1': [], 'covariate2': [], 'r':[], 'p': []})
+
+    # loop through conditions
+    for condition in dimensions:
+
+        # extract data for relevant condition
+        condition_df = df[df['Condition'] == condition]
+
+        # loop through participant ids
+        for participant in participant_ids:
+
+            # extract data for relevant participant
+            ppt_df = condition_df[condition_df['Participant'] == participant]
+
+            # loop through metrics
+            for metric1 in dimensions[condition]:
+
+                # extract data for relevant metric and sort by texture number
+                metric_df_1 = ppt_df[ppt_df['Metric'] == metric1]
+                metric_df_1 = metric_df_1.sort_values(by=['Texture'])
+
+                # loop through metrics
+                for metric2 in dimensions[condition]:
+
+                    # extract data for relevant metric and sort by texture number
+                    metric_df_2 = ppt_df[ppt_df['Metric'] == metric2]
+                    metric_df_2 = metric_df_2.sort_values(by=['Texture'])
+
+                    # do not run correlations for the hand for participant 12 as did not complete condition
+                    if condition == 'hand' and participant == 'PPT_012':
+                        continue
+                    else:
+                        # run spearmans rank correlation
+                        corr = stats.spearmanr(metric_df_1['Mean ratio'], metric_df_2['Mean ratio'])
+
+                        # store data in dataframe
+                        df_single = pd.DataFrame({'Condition': [condition], 'covariate1': [metric1], 'covariate2': [metric2], 'r': [corr[0]], 'p': [corr[1]]})
+
+                        # join dataframes
+                        correlation_df = pd.concat([correlation_df, df_single])
+
+    # save result as .csv file
+    correlation_df.to_csv('../stats_output/ppt_single_value_per_texture_correlating_metrics_within_conditions.csv')
+
+
+def calculate_mean_ppt_level_correlations_metrics_within_conditions():
+    """ Calculate mean correlation for each metric between conditions for each participant
+
+        :return:
+        """
+
+    # load participant level correlations
+    df = pd.read_csv('../stats_output/ppt_single_value_per_texture_correlating_metrics_within_conditions.csv')
+
+    # create dataframe to store results
+    mean_corr_df = pd.DataFrame({'Condition': [], 'covariate1': [], 'covariate2': [], 'mean r': [], 'std r': []})
+
+    # loop through conditions
+    for condition in dimensions:
+
+        # extract data for relevant condition
+        condition_df = df[df['Condition'] == condition]
+
+        # loop through metrics
+        for metric1 in dimensions[condition]:
+
+            # loop through metrics
+            for metric2 in dimensions[condition]:
+
+                # extract data for relevant comparison
+                comparison_df = condition_df[(condition_df['covariate1'] == metric1) & (condition_df['covariate2'] == metric2)]
+
+                # calculate mean correlation
+                # store in dataframe
+                df_single = pd.DataFrame(
+                    {'Condition': [condition], 'covariate1': [metric1], 'covariate2': [metric2], \
+                     'mean r': comparison_df['r'].mean(), 'std r': comparison_df['r'].std()})
+
+                # join dataframes
+                mean_corr_df = pd.concat([mean_corr_df, df_single])
+
+    # save result as .csv file
+    mean_corr_df.to_csv('../stats_output/mean_ppt_correlation_metrics_within_conditions.csv')
