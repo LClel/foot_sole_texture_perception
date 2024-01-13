@@ -47,6 +47,12 @@ mean_ratio_textures(df)
 # calculate correlations for each metric within conditions
 correlate_metrics_within_conditions(df)
 
+# calculate participant level correlations for each metric within conditions
+inter_participant_correlate_metrics_within_conditions(df)
+
+# calculate mean correlations for each metric within conditions at participant level
+calculate_mean_ppt_level_correlations_metrics_within_conditions()
+
 # calculate multiple regression on stability
 # plot scatterplots for each metric and it's relation to stability
 multiple_regression(df)
