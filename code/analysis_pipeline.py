@@ -29,6 +29,12 @@ average_intersubject_correlation(df)
 # calculate correlations for each metric across conditions
 correlate_metrics_between_conditions(df)
 
+# calculate participant level correlations for each metric across conditions
+inter_participant_correlate_metrics_between_conditions(df)
+
+# calculate mean correlations for each metric across conditions at participant level
+calculate_mean_ppt_level_correlations_metrics_between_conditions()
+
 # run Friedman non parametric repeated measures ANOVA and save result to .csv
 non_parametric_rm_ANOVA(df)
 
