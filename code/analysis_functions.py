@@ -486,3 +486,256 @@ def calculate_mean_ppt_level_correlations_metrics_between_conditions():
 
     # save result as .csv file
     mean_corr_df.to_csv('../stats_output/mean_ppt_correlation_metrics_between_conditions.csv')
+
+
+def non_parametric_rm_ANOVA(df):
+    """ Run a non-parametric repeated measures ANOVA - Friedman's test
+    To compare the mean ranks of each texture for a given metric across conditions
+
+    :param df:
+    :param metric:
+    :return:
+    """
+
+    # use only trial 2 so one value per condition-metric-texture-participant combination
+    df = df[df['Trial'] == 2.0]
+
+    # create dataframe to store result
+    friedman_df = pd.DataFrame({'Metric': [], 'Texture number': [], 'Texture name': [], 'F': [], 'p': []})
+
+    # remove participant 12 from analysis as did not complete the hand condition
+    df = df[df['Participant'] != 'PPT_012']
+
+    # loop through metrics (not including stability)
+    for metric in metrics[:-1]:
+
+        # extract data for relevant metric
+        metric_df = df[df['Metric'] == metric]
+
+        # remove metric column
+        metric_df.drop(columns=['Metric'])
+
+        # create pivot table to rearrange data
+        pivoted = pd.pivot_table(metric_df, values='Mean ratio', index=['Texture', 'Participant'],
+                                 columns=['Condition'])
+
+        # create dataframe for the given metric
+        friedman_df_metric = pd.DataFrame({'Metric': [], 'Texture': [], 'F': [], 'p': []})
+
+        # loop through textures
+        for i in range(1,17):
+
+            # extract all values for the texture in each of the conditions (1 per participant)
+            hand = pivoted.loc[i]['hand'].values
+            sitting = pivoted.loc[i]['sitting'].values
+            walking = pivoted.loc[i]['walking'].values
+
+            # run friedman analysis
+            friedman = stats.friedmanchisquare(hand, sitting, walking)
+
+            # store data in dataframe
+            texture_df = pd.DataFrame({'Metric': [metric], 'Texture number': [i], 'Texture name': [texture_names_simple[i]], 'F': [friedman[0]], 'p': [friedman[1]]})
+
+            # join dataframes
+            friedman_df_metric = pd.concat([friedman_df_metric, texture_df], ignore_index=True)
+
+        # join dataframes
+        friedman_df = pd.concat([friedman_df, friedman_df_metric], ignore_index=True)
+
+    # save result as .csv file
+    friedman_df.to_csv('../stats_output/friedman.csv')
+
+
+
+def non_parametric_rm_t_test(df):
+    """ Run a non-parametric repeated measures t-test - Wilcoxen signed rank test
+    To compare the mean ranks of each texture for a given metric across conditions
+
+    :param df:
+    :param metric:
+    :return:
+    """
+
+    # use only
+    df = df[df['Trial'] == 2.]
+
+    # create dataframe to store result
+    wilcoxen_df = pd.DataFrame({'Metric': [], 'Texture number': [], 'Texture name': [], 'Comparison': [], 'W': [], 'p': []})
+
+    # remove participant 12 from analysis as did not complete the hand condition
+    df = df[df['Participant'] != 'PPT_012']
+
+    # loop through metrics except stability
+    for metric in metrics[:-1]:
+
+        # extract data for relevant metric
+        metric_df = df[df['Metric'] == metric]
+
+        # remove metric column
+        metric_df.drop(columns=['Metric'])
+
+        # create pivot table to rearrange data
+        pivoted = pd.pivot_table(metric_df, values='Mean ratio', index=['Texture', 'Participant'],
+                                 columns=['Condition'])
+
+        # store data in dataframe for metric
+        wilcoxen_df_metric = pd.DataFrame({'Metric': [], 'Texture': [], 'Comparison': [], 'W': [], 'p': []})
+
+        # loop through textures
+        for i in range(1,17):
+
+            # extract all values for the texture in each of the conditions (1 per participant)
+            hand = pivoted.loc[i]['hand'].values
+            sitting = pivoted.loc[i]['sitting'].values
+            walking = pivoted.loc[i]['walking'].values
+
+            # run wilcoxen tests on each condition comparison
+            hand_sitting = stats.wilcoxon(hand, sitting)
+            hand_walking = stats.wilcoxon(hand, walking)
+            sitting_walking = stats.wilcoxon(sitting, walking)
+
+            # save result for each comparison
+            h_s_df = pd.DataFrame({'Metric': [metric], 'Texture number': [i], 'Texture name': [texture_names_simple[i]], \
+                                   'Comparison': 'hand-sitting', 'W': [hand_sitting[0]], 'p': [hand_sitting[1]]})
+            h_w_df = pd.DataFrame({'Metric': [metric], 'Texture number': [i], 'Texture name': [texture_names_simple[i]], \
+                                   'Comparison': 'hand-walking', 'W': [hand_walking[0]], 'p': [hand_walking[1]]})
+            s_w_df = pd.DataFrame({'Metric': [metric], 'Texture number': [i], 'Texture name': [texture_names_simple[i]], \
+                                   'Comparison': 'sitting-walking', 'W': [sitting_walking[0]], 'p': [sitting_walking[1]]})
+
+            # join dataframes together
+            wilcoxen_df_metric = pd.concat([wilcoxen_df_metric, h_s_df, h_w_df, s_w_df], ignore_index=True)
+
+        # store data in dataframe
+        wilcoxen_df = pd.concat([wilcoxen_df, wilcoxen_df_metric], ignore_index=True)
+
+    # save result as .csv file
+    wilcoxen_df.to_csv('../stats_output/wilcoxen.csv')
+
+
+def mean_ratio_textures(df):
+    """ Plot the mean ratio scores per texture, including responses from each participant
+    Significant Friedman's are indicated on plot
+
+    :param df:
+    :return:
+    """
+
+    # ensure only mean ratio is used per participant, condition, metric
+    df = df[df['Trial'] == 2]
+
+    # close all other plots
+    plt.close('all')
+
+    # define plot structure
+    fig = plt.figure(constrained_layout=True, dpi=300, figsize=(12, 12))
+    plt.rcParams.update({'font.size': 10})
+    gs = GridSpec(3, 1, figure=fig)
+    ax1 = fig.add_subplot(gs[0])
+    ax2 = fig.add_subplot(gs[1])
+    ax3 = fig.add_subplot(gs[2])
+
+    # load in Friedman analysis
+    friedman = pd.read_csv('../stats_output/friedman.csv')
+
+    # remove participant 12 hand condition
+    df = df.loc[~((df['Condition'] == 'hand') & (df['Participant'] == 'PPT_012'))]
+
+    # set color palette
+    sns.set_palette(condition_colors)
+
+    # ------------------------------------------------ Roughness ------------------------------------------------ #
+
+    # extract roughness data
+    df_roughness = df[df['Metric'] == 'roughness']
+
+    # sort data from most rough to least rough and save, then reload
+    df_roughness.groupby('Name').mean().sort_values(by='Mean ratio', ascending=False)['Mean ratio'].to_csv(
+        '../processed_data/roughness_rank.csv')
+    sorted = pd.read_csv('../processed_data/roughness_rank.csv')['Name']
+
+    # plot mean rating for each participant
+    sns.stripplot(data=df_roughness, x="Name", y="Mean ratio", hue="Condition",
+                  hue_order=['walking', 'sitting', 'hand'], dodge=True, alpha=.1, ax=ax1, order=sorted)
+    # plot mean rating from all participants
+    sns.pointplot(
+        data=df_roughness, x="Name", y="Mean ratio", hue="Condition",
+        hue_order=['walking', 'sitting', 'hand'], marker="-", ax=ax1, join=False,
+        dodge=.5, markers="_", markersize=20, errorbar=0,
+        errwidth=0, order=sorted, legend=False)
+    ax1.legend([], [], frameon=False)
+    ax1.set_title('Smooth - Rough')
+    ax1.set_xticklabels(sorted, rotation=80)
+    ax1.set_ylabel('Mean ratio')
+    ax1.set_xlabel('Texture')
+    ax1.set_ylim(0, 4.5)
+    sns.despine(ax=ax1)
+
+    # identify significant Friedman's test and indicate on plot
+    for i in range(len(sorted)):
+        p = friedman[(friedman['Metric'] == 'roughness') & (friedman['Texture name'] == sorted[i])]
+        p = np.array(p['p'])
+        if p < .05:
+            ax1.scatter(i, 4.25, marker='*', c='black')
+
+    # ------------------------------------------------ Hardness ------------------------------------------------ #
+
+    # extract hardness data
+    df_hardness = df[df['Metric'] == 'hardness']
+
+    # plot mean rating for each participant
+    sns.stripplot(data=df_hardness, x="Name", y="Mean ratio", hue="Condition",
+                  hue_order=['walking', 'sitting', 'hand'], dodge=True, alpha=.1, ax=ax2, order=sorted)
+    # plot mean rating from all participants
+    sns.pointplot(
+        data=df_hardness, x="Name", y="Mean ratio", hue="Condition",
+        hue_order=['walking', 'sitting', 'hand'], marker="-", ax=ax2, join=False,
+        dodge=.5, markers="_", markersize=20, errorbar=0,
+        errwidth=0, order=sorted, legend=False)
+    ax2.legend([], [], frameon=False)
+    ax2.set_title('Soft - Hard')
+    ax2.set_xticklabels(sorted, rotation=80)
+    ax2.set_ylabel('Mean ratio')
+    ax2.set_xlabel('Texture')
+    ax2.set_ylim(0, 4.5)
+    sns.despine(ax=ax2)
+
+    # identify significant Friedman's test and indicate on plot
+    for i in range(len(sorted)):
+        p = friedman[(friedman['Metric'] == 'hardness') & (friedman['Texture name'] == sorted[i])]
+        p = np.array(p['p'])
+        if p < .05:
+            ax2.scatter(i, 4.25, marker='*', c='black')
+
+
+    # ------------------------------------------------ Slipperiness ------------------------------------------------ #
+
+    # extract data for slipperiness
+    df_slipperiness = df[df['Metric'] == 'slipperiness']
+
+    # plot mean rating for each participant
+    sns.stripplot(data=df_slipperiness, x="Name", y="Mean ratio", hue="Condition",
+        hue_order=['walking','sitting','hand'], dodge=True, alpha=.1, ax=ax3, order=sorted)
+    # plot mean rating from all participants
+    sns.pointplot(
+        data=df_slipperiness, x="Name", y="Mean ratio", hue="Condition",
+        hue_order=['walking','sitting','hand'], marker="-", ax=ax3, join=False,
+        dodge=.55, markers="_", markersize=40, errorbar=0, errwidth=0, order=sorted, legend=False)
+    ax3.legend([], [], frameon=False)
+    ax3.set_title('Slippery - Sticky')
+    ax3.set_xticklabels(sorted, rotation=80)
+    ax3.set_ylabel('Mean ratio')
+    ax3.set_xlabel('Texture')
+    ax3.set_ylim(0, 4.5)
+    sns.despine(ax=ax3)
+
+    # identify significant Friedman's test and indicate on plot
+    for i in range(len(sorted)):
+        p = friedman[(friedman['Metric'] == 'slipperiness') & (friedman['Texture name'] == sorted[i])]
+        p = np.array(p['p'])
+        if p < .05:
+            ax3.scatter(i, 4.25, marker='*', c='black')
+
+    # space subplots
+    plt.tight_layout()
+    # save figure
+    plt.savefig('../figures/mean_ratio_per_texture.png')
