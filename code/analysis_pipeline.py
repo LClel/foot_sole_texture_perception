@@ -42,7 +42,7 @@ non_parametric_rm_ANOVA(df)
 non_parametric_rm_t_test(df)
 
 # plot mean rating across all conditions with significance indicators
-plot_standard_error(df)
+mean_ratio_textures(df)
 
 # calculate correlations for each metric within conditions
 correlate_metrics_within_conditions(df)
