@@ -45,9 +45,7 @@ def import_data(participant_id):
     """
 
     # load in raw data file
-    #data = pd.ExcelFile('../data/' + participant_id + '/' + participant_id + '_responses.xlsx')
-    
-    data = pd.ExcelFile('/Users/lukecleland/Documents/PhD/Repositories/foot_texture_perception/Data/' + participant_id + '/' + participant_id + '_responses.xlsx')
+    data = pd.ExcelFile('../data/' + participant_id + '/' + participant_id + '_responses.xlsx')
 
     # loop through conditions
     for sheet in ['walking', 'sitting', 'hand']:
