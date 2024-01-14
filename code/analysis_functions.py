@@ -45,7 +45,9 @@ def import_data(participant_id):
     """
 
     # load in raw data file
-    data = pd.ExcelFile('../data/' + participant_id + '/' + participant_id + '_responses.xlsx')
+    #data = pd.ExcelFile('../data/' + participant_id + '/' + participant_id + '_responses.xlsx')
+    
+    data = pd.ExcelFile('/Users/lukecleland/Documents/PhD/Repositories/foot_texture_perception/Data/' + participant_id + '/' + participant_id + '_responses.xlsx')
 
     # loop through conditions
     for sheet in ['walking', 'sitting', 'hand']:
@@ -337,7 +339,7 @@ def correlate_metrics_between_conditions(df):
         i += 1
 
     # save figure
-    plt.savefig('../figures/single_value_per_texture_correlating_metrics_between_conditions.png')
+    plt.savefig('../individual_figures/single_value_per_texture_correlating_metrics_between_conditions.png')
 
     # ------------------------ get p-values ------------------------ #
     # create dataframe to store results
@@ -363,17 +365,21 @@ def correlate_metrics_between_conditions(df):
 
                 # remove participant 12 from any comparison involving the hand condition, which they did not complete
                 if condition1 == 'hand' or condition2 == 'hand':
-                    condition_df_1 = condition_df_1[condition_df_1['Participant'] != 'PPT_012']
-                    condition_df_2 = condition_df_2[condition_df_2['Participant'] != 'PPT_012']
+                    condition_df_1_corr = condition_df_1[condition_df_1['Participant'] != 'PPT_012']
+                    condition_df_2_corr= condition_df_2[condition_df_2['Participant'] != 'PPT_012']
+
+                else:
+                    condition_df_1_corr = condition_df_1.copy()
+                    condition_df_2_corr = condition_df_2.copy()
 
                 # calculate mean score for texture across all participants
-                condition_df_1 = condition_df_1.sort_values(by=['Texture']).groupby('Texture').mean()
+                condition_df_1_corr = condition_df_1_corr.sort_values(by=['Texture']).groupby('Texture').mean()
 
                 # calculate mean score for texture across all participants
-                condition_df_2 = condition_df_2.sort_values(by=['Texture']).groupby('Texture').mean()
+                condition_df_2_corr = condition_df_2_corr.sort_values(by=['Texture']).groupby('Texture').mean()
 
                 # calculate spearmans rank correlation
-                corr = stats.spearmanr(condition_df_1['Mean ratio'], condition_df_2['Mean ratio'])
+                corr = stats.spearmanr(condition_df_1_corr['Mean ratio'], condition_df_2_corr['Mean ratio'])
 
                 # store data into dataframe
                 df_single = pd.DataFrame(
@@ -447,6 +453,7 @@ def inter_participant_correlate_metrics_between_conditions(df):
 
     # save result as .csv file
     correlation_df.to_csv('../stats_output/ppt_single_value_per_texture_correlating_metrics_between_conditions2.csv')
+
 
 def calculate_mean_ppt_level_correlations_metrics_between_conditions():
     """ Calculate mean correlation for each metric between conditions for each participant
@@ -544,7 +551,6 @@ def non_parametric_rm_ANOVA(df):
 
     # save result as .csv file
     friedman_df.to_csv('../stats_output/friedman.csv')
-
 
 
 def non_parametric_rm_t_test(df):
@@ -738,7 +744,7 @@ def mean_ratio_textures(df):
     # space subplots
     plt.tight_layout()
     # save figure
-    plt.savefig('../figures/mean_ratio_per_texture.png')
+    plt.savefig('../individual_figures/mean_ratio_per_texture.png')
 
 
 def correlate_metrics_within_conditions(df):
@@ -786,7 +792,7 @@ def correlate_metrics_within_conditions(df):
         i += 1
 
     # save plot
-    plt.savefig('../figures/single_value_per_texture_correlating_metrics_within_conditions.png')
+    plt.savefig('../individual_figures/single_value_per_texture_correlating_metrics_within_conditions.png')
 
 
     # ------------------------- Remove stability from correlation matrix ------------------------- #
@@ -828,7 +834,7 @@ def correlate_metrics_within_conditions(df):
         i += 1
 
     # save plot
-    plt.savefig('../figures/single_value_no_stability_correlating_metrics_within_conditions.png')
+    plt.savefig('../individual_figures/single_value_no_stability_correlating_metrics_within_conditions.png')
 
     # ---------------------------- run correlation using scipy ---------------------------- #
     # create dataframe to store result
@@ -1049,4 +1055,4 @@ def multiple_regression(df):
     ax3.set_xlabel('Slippery - sticky')
 
     # save plot
-    plt.savefig('../figures/single_value_per_texture_relation_to_stability.png')
+    plt.savefig('../individual_figures/single_value_per_texture_relation_to_stability.png')
