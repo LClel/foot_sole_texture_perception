@@ -331,7 +331,7 @@ def correlate_metrics_between_conditions(df):
                                  columns=['Condition'])
 
         # plot correlation heatmap
-        sns.heatmap(pivoted.corr(method='spearman'), vmin=0., vmax=1., ax=axes[i], square=True, annot=True, fmt=".2f", )
+        sns.heatmap(pivoted.corr(method='spearman'), vmin=0., vmax=1., ax=axes[i], square=True, annot=True, fmt=".3f", )
         axes[i].set_title(metric)
 
         i += 1
@@ -631,12 +631,16 @@ def mean_ratio_textures(df):
     plt.close('all')
 
     # define plot structure
-    fig = plt.figure(constrained_layout=True, dpi=300, figsize=(12, 12))
+    fig = plt.figure(constrained_layout=True, dpi=300, figsize=(15, 12))
     plt.rcParams.update({'font.size': 10})
-    gs = GridSpec(3, 1, figure=fig)
-    ax1 = fig.add_subplot(gs[0])
-    ax2 = fig.add_subplot(gs[1])
-    ax3 = fig.add_subplot(gs[2])
+    gs = GridSpec(3, 4, figure=fig)
+
+    ax1 = fig.add_subplot(gs[0, :3])
+    ax2 = fig.add_subplot(gs[1, :3])
+    ax3 = fig.add_subplot(gs[2, :3])
+    ax4 = fig.add_subplot(gs[0, 3])
+    ax5 = fig.add_subplot(gs[1, 3])
+    ax6 = fig.add_subplot(gs[2, 3])
 
     # load in Friedman analysis
     friedman = pd.read_csv('../stats_output/friedman.csv')
@@ -681,6 +685,13 @@ def mean_ratio_textures(df):
         if p < .05:
             ax1.scatter(i, 4.25, marker='*', c='black')
 
+    # kde plot to show spread of scores
+    sns.kdeplot(data=df_roughness, y='Mean ratio', hue='Condition', hue_order=['walking', 'sitting', 'hand'], \
+                ax=ax4, legend=False)
+    ax4.set_title('Smooth - Rough')
+    ax4.set_ylim(0, 4.5)
+    sns.despine(ax=ax4)
+
     # ------------------------------------------------ Hardness ------------------------------------------------ #
 
     # extract hardness data
@@ -710,6 +721,12 @@ def mean_ratio_textures(df):
         if p < .05:
             ax2.scatter(i, 4.25, marker='*', c='black')
 
+    # kde plot to show spread of scores
+    ax5.set_title('Soft - Hard')
+    sns.kdeplot(data=df_hardness, y='Mean ratio', hue='Condition', hue_order=['walking', 'sitting', 'hand'], \
+                ax=ax5, legend=False)
+    ax5.set_ylim(0, 4.5)
+    sns.despine(ax=ax5)
 
     # ------------------------------------------------ Slipperiness ------------------------------------------------ #
 
@@ -738,6 +755,13 @@ def mean_ratio_textures(df):
         p = np.array(p['p'])
         if p < .05:
             ax3.scatter(i, 4.25, marker='*', c='black')
+
+    # kde plot to show spread of scores
+    ax6.set_title('Slippery - Sticky')
+    sns.kdeplot(data=df_slipperiness, y='Mean ratio', hue='Condition', hue_order=['walking', 'sitting', 'hand'], \
+                ax=ax6, legend=False)
+    ax6.set_ylim(0, 4.5)
+    sns.despine(ax=ax6)
 
     # space subplots
     plt.tight_layout()
@@ -784,7 +808,7 @@ def correlate_metrics_within_conditions(df):
                                  columns=['Metric'])
 
         # plot correlation matric
-        sns.heatmap(pivoted.corr(method='spearman'), vmin=0., vmax=1., ax=axes[i], square=True, annot=True, fmt=".2f")
+        sns.heatmap(pivoted.corr(method='spearman'), vmin=0., vmax=1., ax=axes[i], square=True, annot=True, fmt=".3f")
         axes[i].set_title(condition)
 
         i += 1
@@ -826,7 +850,7 @@ def correlate_metrics_within_conditions(df):
                                  columns=['Metric'])
 
         # plot correlation matrix
-        sns.heatmap(pivoted.corr(method='spearman'), vmin=0., vmax=1., ax=axes[i], square=True, annot=True, fmt=".2f")
+        sns.heatmap(pivoted.corr(method='spearman'), vmin=0., vmax=1., ax=axes[i], square=True, annot=True, fmt=".3f")
         axes[i].set_title(condition)
 
         i += 1
@@ -887,7 +911,7 @@ def inter_participant_correlate_metrics_within_conditions(df):
     df = df[df['Trial'] == 2.0]
 
     # create dataframe to store result
-    correlation_df = pd.DataFrame({'Condition': [], 'covariate1': [], 'covariate2': [], 'r':[], 'p': []})
+    correlation_df = pd.DataFrame({'Condition': [], 'covariate1': [], 'covariate2': [], 'participant': [], 'r':[], 'p': []})
 
     # loop through conditions
     for condition in dimensions:
@@ -923,7 +947,9 @@ def inter_participant_correlate_metrics_within_conditions(df):
                         corr = stats.spearmanr(metric_df_1['Mean ratio'], metric_df_2['Mean ratio'])
 
                         # store data in dataframe
-                        df_single = pd.DataFrame({'Condition': [condition], 'covariate1': [metric1], 'covariate2': [metric2], 'r': [corr[0]], 'p': [corr[1]]})
+                        df_single = pd.DataFrame({'Condition': [condition], 'covariate1': [metric1], \
+                                                  'covariate2': [metric2],  'participant': [participant],\
+                                                  'r': [corr[0]], 'p': [corr[1]]})
 
                         # join dataframes
                         correlation_df = pd.concat([correlation_df, df_single])
@@ -1054,3 +1080,117 @@ def multiple_regression(df):
 
     # save plot
     plt.savefig('../individual_figures/single_value_per_texture_relation_to_stability.png')
+
+
+def between_condition_ppt_level_heatmap():
+    """
+
+    :return:
+    """
+
+
+    data = pd.read_csv('../stats_output/mean_ppt_correlation_metrics_between_conditions.csv')
+
+    fig = plt.figure(constrained_layout=True, dpi=300, figsize=(8, 2))
+    plt.rcParams.update({'font.size': 5})
+    gs = GridSpec(1, 3, figure=fig)
+
+    ax1 = fig.add_subplot(gs[0])
+    ax2 = fig.add_subplot(gs[1])
+    ax3 = fig.add_subplot(gs[2])
+
+    axes = [ax1, ax2, ax3]
+
+    k = 0
+
+    conditions.reverse()
+
+    for metric in metrics[:-1]:
+
+        array = np.zeros((3,3))
+
+        for i in range(len(conditions)):
+
+            for j in range(len(conditions)):
+
+                array[i,j] = data[(data['Metric'] == metric) & (data['covariate1'] == conditions[i]) & (data['covariate2'] == conditions[j])]['mean r']
+
+
+        axes[k].set_title(metric)
+        sns.heatmap(array.T, vmin=0., vmax=1., ax=axes[k], square=True, annot=True, fmt=".2f", xticklabels=conditions, yticklabels=conditions)
+
+        k+=1
+
+    plt.savefig('../figures/mean_ppt_corr_between_conditions.png')
+
+
+def within_condition_ppt_level_heatmap():
+
+
+    data = pd.read_csv('../stats_output/mean_ppt_correlation_metrics_within_conditions.csv')
+
+    fig = plt.figure(constrained_layout=True, dpi=300, figsize=(8, 2))
+    plt.rcParams.update({'font.size': 5})
+    gs = GridSpec(1, 3, figure=fig)
+
+    ax1 = fig.add_subplot(gs[0])
+    ax2 = fig.add_subplot(gs[1])
+    ax3 = fig.add_subplot(gs[2])
+
+    axes = [ax1, ax2, ax3]
+
+    k = 0
+
+    metrics = ['hardness','roughness','slipperiness','stability']
+
+    for condition in conditions:
+
+        array = np.zeros((3,3))
+
+        for i in range(len(metrics[:-1])):
+
+            for j in range(len(metrics[:-1])):
+
+                array[i,j] = data[(data['Condition'] == condition) & (data['covariate1'] == metrics[:-1][i]) & (data['covariate2'] == metrics[:-1][j])]['mean r']
+
+
+        axes[k].set_title(condition)
+        sns.heatmap(array, vmin=0., vmax=1., ax=axes[k], square=True, annot=True, fmt=".2f", xticklabels=metrics[:-1], yticklabels=metrics[:-1])
+
+        k+=1
+
+    plt.savefig('../figures/mean_ppt_corr_within_conditions.png')
+
+
+def spread_of_scores_between_conditions(df):
+    """ Run Levene's test for homogeneity of variance to compare distribution of scores
+
+    :param df:
+    :return:
+    """
+
+    df = df[df['Trial'] == 2.0] # only use one value per texture rating
+
+    levenes_df = pd.DataFrame({'Metric': [], 'F': [], 'p': []})
+    # loop through metrics
+    for metric in dimensions['sitting']:
+
+        # select data for relevant metric
+        metric_df = df[df['Metric'] == metric]
+
+        # extract data for each condition
+        # remove PPT 012 from hand condition as did not take part in condition
+        hand_df = metric_df[(metric_df['Condition'] == 'hand') & (metric_df['Participant'] != 'PPT_012')]
+        sitting_df = metric_df[metric_df['Condition'] == 'sitting']
+        walking_df = metric_df[metric_df['Condition'] == 'walking']
+
+        # run levenes
+        levenes = stats.levene(hand_df['Mean ratio'].values, sitting_df['Mean ratio'].values,
+                               walking_df['Mean ratio'].values)
+
+        # save levenes result as .csv file
+        print(metric, ': ', levenes)
+
+        levenes_df = pd.concat([levenes_df, pd.DataFrame({'Metric': [metric], 'F': [levenes[0]], 'p': [levenes[1]]})])
+
+    levenes_df.to_csv('../stats_output/levenes_between_conditions.csv')
