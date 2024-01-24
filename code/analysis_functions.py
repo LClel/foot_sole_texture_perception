@@ -1194,3 +1194,109 @@ def spread_of_scores_between_conditions(df):
         levenes_df = pd.concat([levenes_df, pd.DataFrame({'Metric': [metric], 'F': [levenes[0]], 'p': [levenes[1]]})])
 
     levenes_df.to_csv('../stats_output/levenes_between_conditions.csv')
+
+
+def tidy_rank_per_condition(df):
+    """ Slope plot showing the rank of each texture across conditions
+
+    :param df:
+    :param texture:
+    :param metric:
+    :param condition1:
+    :param condition2:
+    :return:
+    """
+
+    df = df[df['Trial'] == 2] # only trial 2 so one value per participant and texture
+    df = df[df['Participant'] != 'PPT_012'] # remove participant 12 as they did not complete hand conditions so cannot compare ranks
+
+    plotting_df = pd.DataFrame({'Condition': [], 'Metric': [], 'Rank': [], 'Texture': []})
+
+    # loop through metrics
+    for metric in dimensions['sitting']:
+
+        # extract only relevant metric
+        metric_df = df[df['Metric'] == metric]
+
+        # loop through conditions
+        for condition in dimensions:
+
+            # extract data for relevant condition
+            condition_df = metric_df[metric_df['Condition'] == condition]
+
+            # order the textures from low to high ratings
+            ordered = condition_df.groupby('Texture').mean().sort_values(by='Mean ratio').reset_index()[
+                'Texture'].values
+
+            # add to dataframe
+            ordered_df = pd.DataFrame(
+                {'Condition': condition, 'Metric': metric, 'Rank': list(range(1, 17)), 'Texture': ordered})
+            plotting_df = pd.concat([plotting_df, ordered_df])
+
+    # reset indexes
+    plotting_df = plotting_df.reset_index()
+
+    # add column to store texture names
+    plotting_df['Name'] = np.zeros(plotting_df.shape[0])
+
+    # loop through textures
+    for i in texture_names_simple:
+
+        # find row indexes for each texture ID
+        idxs = plotting_df[plotting_df['Texture'] == i].index
+
+        # add texture name to texture ID
+        plotting_df.loc[idxs, 'Name'] = texture_names_simple[i]
+
+
+    fig = plt.figure(constrained_layout=True, dpi=100, figsize=(20, 7))
+    plt.rcParams.update({'font.size': 10})
+    gs = GridSpec(1, 3, figure=fig)
+
+    ax1 = fig.add_subplot(gs[0])
+    ax2 = fig.add_subplot(gs[1])
+    ax3 = fig.add_subplot(gs[2])
+
+    sns.set_palette(list(texture_colors.values()))
+
+
+    hardness = plotting_df[plotting_df['Metric'] == 'hardness']
+    ax1.set_title('Hardness')
+    sns.pointplot(data=hardness, x='Condition', y='Rank', hue='Name', ax=ax1,
+                  hue_order=list(texture_names_simple.values()), scale=0.9, capsize=.05,  # errorbar='sd',\
+                  plot_kws=dict(alpha=0.3))
+    plt.setp(ax1.collections, alpha=.7)  # for the markers
+    plt.setp(ax1.lines, alpha=.3)  # for the lines)
+    ax1.set_ylim(0, 17)
+    sns.despine(ax=ax1)
+    ax1.set_ylabel('Rank \n Soft to Hard')
+    ax1.legend(bbox_to_anchor=(1.02, 1), loc=2, borderaxespad=0.)
+
+    # sns.set_palette(list(texture_colors_roughness.values()))
+    roughness = plotting_df[plotting_df['Metric'] == 'roughness']
+    ax2.set_title('Roughness')
+    sns.pointplot(data=roughness, x='Condition', y='Rank', hue='Name', ax=ax2,
+                  hue_order=list(texture_names_simple.values()), scale=0.9, capsize=.05,  # errorbar='sd',\
+                  plot_kws=dict(alpha=0.3))
+    plt.setp(ax2.collections, alpha=.7)  # for the markers
+    plt.setp(ax2.lines, alpha=.3)  # for the lines)
+    ax2.set_ylim(0, 17)
+    sns.despine(ax=ax2)
+    ax2.set_ylabel('Rank \n Smooth to Rough')
+    ax2.legend(bbox_to_anchor=(1.02, 1), loc=2, borderaxespad=0.)
+
+    # sns.set_palette(list(texture_colors_slipperiness.values()))
+    slipperiness = plotting_df[plotting_df['Metric'] == 'slipperiness']
+    ax3.set_title('Slipperiness')
+    sns.pointplot(data=slipperiness, x='Condition', y='Rank', hue='Name', ax=ax3,
+                  hue_order=list(texture_names_simple.values()), scale=0.9, capsize=.05,  # errorbar='sd',\
+                  plot_kws=dict(alpha=0.3))
+    plt.setp(ax3.collections, alpha=.7)  # for the markers
+    plt.setp(ax3.lines, alpha=.3)  # for the lines)
+    ax3.set_ylim(0, 17)
+    sns.despine(ax=ax3)
+    ax3.set_ylabel('Rank \n Slippery to Sticky')
+    ax3.legend(bbox_to_anchor=(1.02, 1), loc=2, borderaxespad=0.)
+
+    plt.subplots_adjust(wspace=1.1)
+    plt.savefig('../individual_figures/texture_rank_across_conditions.png')
