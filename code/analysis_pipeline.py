@@ -32,6 +32,8 @@ correlate_metrics_between_conditions(df)
 # compare spread of scores between conditions
 spread_of_scores_between_conditions(df)
 
+
+
 # plot rank per texture across conditions
 tidy_rank_per_condition(df)
 
@@ -46,6 +48,15 @@ non_parametric_rm_ANOVA(df)
 
 # run Wilcoxen post-hoc non parametric repeated measures t-test and save result to .csv
 non_parametric_rm_t_test(df)
+
+# run Friedman non parametric repeated measures ANOVA and save result to .csv
+non_parametric_rm_ANOVA_rank(df)
+
+# run Wilcoxen post-hoc non parametric repeated measures t-test and save result to .csv
+non_parametric_rm_t_test_rank(df)
+
+# plot mean rank across all conditions with significance indicators
+mean_rank_textures(df)
 
 # plot mean rating across all conditions with significance indicators
 mean_ratio_textures(df)
