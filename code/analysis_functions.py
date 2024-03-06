@@ -129,7 +129,7 @@ def ratio_relative_to_mean(df):
     return df
 
 
-def rank_tetures(df):
+def rank_textures(df):
     """ Add rank to each texture based on mean ratio
 
     :param df:
@@ -217,13 +217,13 @@ def collate_all_data_ratio(participant_ids):
         if i == 0:
             df = import_data(participant_ids[i]) # import data
             df = ratio_relative_to_mean(df) # transform ratings into ratio
-            df = rank_tetures(df) # calcualte rank of each texture
+            df = rank_textures(df) # calcualte rank of each texture
             df = standard_error_responses(df) # calculate standard error of responses
 
         else:
             ppt_df = import_data(participant_ids[i]) # import data
             ppt_df = ratio_relative_to_mean(ppt_df) # transform ratings into ratio
-            ppt_df = rank_tetures(ppt_df) # calcualte rank of each texture
+            ppt_df = rank_textures(ppt_df) # calcualte rank of each texture
             ppt_df = standard_error_responses(ppt_df) # calculate standard error of responses
 
             df = df.append(ppt_df) # join dataframes
@@ -236,65 +236,54 @@ def collate_all_data_ratio(participant_ids):
 
 
 def average_intersubject_correlation(df):
-    """ Calcualte the correlation between all participants, and calculate average correlation
 
-    :param df:
-    :return:
-    """
-
-    # select only trial 2 so one value per texture per participant-condition-metric combination
     df = df[df['Trial'] == 2.]
 
-    # create new dataframe to store results
-    mean_r_df = pd.DataFrame({'Comparison': [], 'mean r': [], 'min r': [], 'max r': [], 'std r': []})
+    # participants = df['Participant'].unique()
 
-    # loop through conditions
+    mean_r_df = pd.DataFrame({'Comparison': [], 'mean r': [], 'min r': [], 'max r': []})
+
+    all_r_df = pd.DataFrame({'Metric': [], 'Condition': [], 'participant1': [], 'participant2': [], 'r': []})
     for condition in conditions:
 
-        # loop through metrics
         for metric in metrics[:-1]:
 
-            # select condition-metric combination
             trimmed_df = df[(df['Condition'] == condition) & (df['Metric'] == metric)]
 
             # remove participant 12 hand condition
             if condition == 'hand':
                 trimmed_df = trimmed_df[trimmed_df['Participant'] != 'PPT_012']
 
-            # get participant IDs
             participants = trimmed_df['Participant'].unique()
 
             n_comparisons = 0
             correlations = np.array([])
-            # loop through participants
             for i in range(len(participants)-1):
+                print(participants[i])
 
                 for j in range(len(participants[i+1:])):
+                    print(participants[i+1:][j])
 
                     n_comparisons += 1
 
-                    # get mean ration for each participant in correlation
                     ppt_i = trimmed_df[trimmed_df['Participant'] == participants[i]]['Mean ratio'].values
                     ppt_j = trimmed_df[trimmed_df['Participant'] == participants[i+1:][j]]['Mean ratio'].values
 
-                    # run spearmans rank correlation
                     correlate = stats.spearmanr(ppt_i, ppt_j)
 
-                    # add correlation to array
                     correlations = np.append(correlations, correlate[0])
 
-            # calculate mean, min and max correlation
-            # store data in dataframe
-            correlation_metric_condition = pd.DataFrame({'Comparison': [condition + ': ' + metric], \
-                                                         'mean r': np.mean(correlations),
-                                                         'min r': np.min(correlations), 'max r': np.max(correlations), \
-                                                         'std r': np.std(correlations)})
+                    indiv_r_df = pd.DataFrame({'Metric': [metric], 'Condition': [condition], 'participant1': [participants[i]], 'participant2': [participants[i+1:][j]], 'r': [correlate[0]]})
 
-            # join dataframes
+                    all_r_df = all_r_df.append(indiv_r_df)
+                print(n_comparisons)
+            correlation_metric_condition = pd.DataFrame({'Comparison': [condition + ': ' + metric], 'mean r': np.mean(correlations),
+                                                         'min r': np.min(correlations), 'max r': np.max(correlations)})
+
             mean_r_df = mean_r_df.append(correlation_metric_condition)
 
-    # save as .csv file
     mean_r_df.to_csv('../stats_output/inter_subject_correlations.csv')
+    all_r_df.to_csv('../stats_output/all_inter_subject_correlations.csv')
 
     return mean_r_df
 
@@ -631,8 +620,9 @@ def mean_ratio_textures(df):
     plt.close('all')
 
     # define plot structure
-    fig = plt.figure(constrained_layout=True, dpi=300, figsize=(15, 12))
-    plt.rcParams.update({'font.size': 10})
+    fig = plt.figure(constrained_layout=True, dpi=300, figsize=(6.85, 6))
+    plt.rcParams.update({'font.size': 6.5})
+    plt.rcParams["font.family"] = "Arial"
     gs = GridSpec(3, 4, figure=fig)
 
     ax1 = fig.add_subplot(gs[0, :3])
@@ -662,8 +652,8 @@ def mean_ratio_textures(df):
     sorted = pd.read_csv('../processed_data/roughness_rank.csv')['Name']
 
     # plot mean rating for each participant
-    sns.stripplot(data=df_roughness, x="Name", y="Mean ratio", hue="Condition",
-                  hue_order=['walking', 'sitting', 'hand'], dodge=True, alpha=.1, ax=ax1, order=sorted)
+    sns.swarmplot(data=df_roughness, x="Name", y="Mean ratio", hue="Condition",
+                  hue_order=['walking', 'sitting', 'hand'], dodge=True, alpha=.5, ax=ax1, order=sorted, size=1.5)
     # plot mean rating from all participants
     sns.pointplot(
         data=df_roughness, x="Name", y="Mean ratio", hue="Condition",
@@ -671,11 +661,12 @@ def mean_ratio_textures(df):
         dodge=.5, markers="_", markersize=20, errorbar=0,
         errwidth=0, order=sorted, legend=False)
     ax1.legend([], [], frameon=False)
-    ax1.set_title('Smooth - Rough')
+    ax1.set_title('Smooth - Rough', fontsize=9)
     ax1.set_xticklabels(sorted, rotation=80)
-    ax1.set_ylabel('Mean ratio')
-    ax1.set_xlabel('Texture')
+    ax1.set_ylabel('Mean ratio', fontsize=8)
+    ax1.set_xlabel('')
     ax1.set_ylim(0, 4.5)
+    ax1.set_xticklabels([])
     sns.despine(ax=ax1)
 
     # identify significant Friedman's test and indicate on plot
@@ -683,13 +674,16 @@ def mean_ratio_textures(df):
         p = friedman[(friedman['Metric'] == 'roughness') & (friedman['Texture name'] == sorted[i])]
         p = np.array(p['p'])
         if p < .05:
-            ax1.scatter(i, 4.25, marker='*', c='black')
+            ax1.scatter(i, 4.25, marker='*', c='black', s=3)
 
     # kde plot to show spread of scores
     sns.kdeplot(data=df_roughness, y='Mean ratio', hue='Condition', hue_order=['walking', 'sitting', 'hand'], \
                 ax=ax4, legend=False)
-    ax4.set_title('Smooth - Rough')
+    ax4.set_title('Smooth - Rough', fontsize=8)
     ax4.set_ylim(0, 4.5)
+    ax4.set_ylabel('')
+    ax4.set_xlabel('')
+    ax4.set_xticklabels([])
     sns.despine(ax=ax4)
 
     # ------------------------------------------------ Hardness ------------------------------------------------ #
@@ -698,8 +692,8 @@ def mean_ratio_textures(df):
     df_hardness = df[df['Metric'] == 'hardness']
 
     # plot mean rating for each participant
-    sns.stripplot(data=df_hardness, x="Name", y="Mean ratio", hue="Condition",
-                  hue_order=['walking', 'sitting', 'hand'], dodge=True, alpha=.1, ax=ax2, order=sorted)
+    sns.swarmplot(data=df_hardness, x="Name", y="Mean ratio", hue="Condition",
+                  hue_order=['walking', 'sitting', 'hand'], dodge=True, alpha=.5, ax=ax2, order=sorted, size=1.5)
     # plot mean rating from all participants
     sns.pointplot(
         data=df_hardness, x="Name", y="Mean ratio", hue="Condition",
@@ -707,10 +701,11 @@ def mean_ratio_textures(df):
         dodge=.5, markers="_", markersize=20, errorbar=0,
         errwidth=0, order=sorted, legend=False)
     ax2.legend([], [], frameon=False)
-    ax2.set_title('Soft - Hard')
+    ax2.set_title('Soft - Hard', fontsize=9)
     ax2.set_xticklabels(sorted, rotation=80)
-    ax2.set_ylabel('Mean ratio')
-    ax2.set_xlabel('Texture')
+    ax2.set_ylabel('Mean ratio', fontsize=8)
+    ax2.set_xlabel('')
+    ax2.set_xticklabels([])
     ax2.set_ylim(0, 4.5)
     sns.despine(ax=ax2)
 
@@ -719,14 +714,17 @@ def mean_ratio_textures(df):
         p = friedman[(friedman['Metric'] == 'hardness') & (friedman['Texture name'] == sorted[i])]
         p = np.array(p['p'])
         if p < .05:
-            ax2.scatter(i, 4.25, marker='*', c='black')
+            ax2.scatter(i, 4.25, marker='*', c='black', s=3)
 
     # kde plot to show spread of scores
-    ax5.set_title('Soft - Hard')
+    ax5.set_title('Soft - Hard', fontsize=8)
     sns.kdeplot(data=df_hardness, y='Mean ratio', hue='Condition', hue_order=['walking', 'sitting', 'hand'], \
                 ax=ax5, legend=False)
     ax5.set_ylim(0, 4.5)
+    ax5.set_ylabel('')
+    ax5.set_xlabel('')
     sns.despine(ax=ax5)
+    ax5.set_xticklabels([])
 
     # ------------------------------------------------ Slipperiness ------------------------------------------------ #
 
@@ -734,18 +732,18 @@ def mean_ratio_textures(df):
     df_slipperiness = df[df['Metric'] == 'slipperiness']
 
     # plot mean rating for each participant
-    sns.stripplot(data=df_slipperiness, x="Name", y="Mean ratio", hue="Condition",
-        hue_order=['walking','sitting','hand'], dodge=True, alpha=.1, ax=ax3, order=sorted)
+    sns.swarmplot(data=df_slipperiness, x="Name", y="Mean ratio", hue="Condition",
+        hue_order=['walking','sitting','hand'], dodge=True, alpha=.5, ax=ax3, order=sorted, size=1.5)
     # plot mean rating from all participants
     sns.pointplot(
         data=df_slipperiness, x="Name", y="Mean ratio", hue="Condition",
         hue_order=['walking','sitting','hand'], marker="-", ax=ax3, join=False,
         dodge=.55, markers="_", markersize=40, errorbar=0, errwidth=0, order=sorted, legend=False)
     ax3.legend([], [], frameon=False)
-    ax3.set_title('Slippery - Sticky')
+    ax3.set_title('Slippery - Sticky', fontsize=9)
     ax3.set_xticklabels(sorted, rotation=80)
-    ax3.set_ylabel('Mean ratio')
-    ax3.set_xlabel('Texture')
+    ax3.set_ylabel('Mean ratio', fontsize=8)
+    ax3.set_xlabel('Texture', fontsize=8)
     ax3.set_ylim(0, 4.5)
     sns.despine(ax=ax3)
 
@@ -754,19 +752,21 @@ def mean_ratio_textures(df):
         p = friedman[(friedman['Metric'] == 'slipperiness') & (friedman['Texture name'] == sorted[i])]
         p = np.array(p['p'])
         if p < .05:
-            ax3.scatter(i, 4.25, marker='*', c='black')
+            ax3.scatter(i, 4.25, marker='*', c='black', s=3)
 
     # kde plot to show spread of scores
     ax6.set_title('Slippery - Sticky')
     sns.kdeplot(data=df_slipperiness, y='Mean ratio', hue='Condition', hue_order=['walking', 'sitting', 'hand'], \
                 ax=ax6, legend=False)
     ax6.set_ylim(0, 4.5)
+    ax6.set_ylabel('')
     sns.despine(ax=ax6)
 
     # space subplots
     plt.tight_layout()
     # save figure
     plt.savefig('../individual_figures/mean_ratio_per_texture.png')
+    plt.savefig('../individual_figures/mean_ratio_per_texture.svg', dpi=600)
 
 
 def mean_rank_textures(df):
@@ -784,16 +784,17 @@ def mean_rank_textures(df):
     plt.close('all')
 
     # define plot structure
-    fig = plt.figure(constrained_layout=True, dpi=300, figsize=(15, 15))
-    plt.rcParams.update({'font.size': 10})
-    gs = GridSpec(3, 4, figure=fig)
+    fig = plt.figure(constrained_layout=True, dpi=600, figsize=(4.49, 6))
+    plt.rcParams.update({'font.size': 6.5})
+    plt.rcParams["font.family"] = "Arial"
+    gs = GridSpec(3, 1, figure=fig)
 
-    ax1 = fig.add_subplot(gs[0, :3])
-    ax2 = fig.add_subplot(gs[1, :3])
-    ax3 = fig.add_subplot(gs[2, :3])
-    ax4 = fig.add_subplot(gs[0, 3])
-    ax5 = fig.add_subplot(gs[1, 3])
-    ax6 = fig.add_subplot(gs[2, 3])
+    ax1 = fig.add_subplot(gs[0])#, :3])
+    ax2 = fig.add_subplot(gs[1])#, :3])
+    ax3 = fig.add_subplot(gs[2])#, :3])
+    #ax4 = fig.add_subplot(gs[0, 3])
+    #ax5 = fig.add_subplot(gs[1, 3])
+    #ax6 = fig.add_subplot(gs[2, 3])
 
     # load in Friedman analysis
     friedman = pd.read_csv('../stats_output/friedman_rank.csv')
@@ -816,19 +817,22 @@ def mean_rank_textures(df):
 
     # plot mean rating for each participant
     sns.swarmplot(data=df_roughness, x="Name", y="Rank", hue="Condition",
-                  hue_order=['walking', 'sitting', 'hand'], dodge=True, alpha=.5, ax=ax1, order=sorted, size=3.)
+                  hue_order=['walking', 'sitting', 'hand'], dodge=True, alpha=.5, ax=ax1, order=sorted, size=1.5)
     # plot mean rating from all participants
     sns.pointplot(
         data=df_roughness, x="Name", y="Rank", hue="Condition",
         hue_order=['walking', 'sitting', 'hand'], marker="-", ax=ax1, join=False,
-        dodge=.57, markers="_", markersize=70, errorbar=0, errwidth=0, order=sorted, legend=False, scale=1.5)
+        dodge=.57, markers="_", markersize=40, errorbar=0, errwidth=0, order=sorted, legend=False, scale=.7)
     ax1.legend([], [], frameon=False)
-    ax1.set_title('Smooth - Rough')
+    ax1.set_title('Smooth - Rough', fontsize=9)
     ax1.set_xticklabels(sorted, rotation=80)
-    ax1.set_ylabel('Rank')
-    ax1.set_xlabel('Texture')
-    ax1.set_ylim(0, 17)
-    ax1.set_yticks([0, 2, 4, 6, 8, 10, 12, 14, 16])
+    ax1.set_ylabel('Rank', fontsize=8)
+    #ax1.set_xlabel('Texture')
+    ax1.set_xticklabels(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''])
+    ax1.set_xlabel('')
+    ax1.set_ylim(0.8, 16.35)
+    #ax1.set_yticks([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16])
+    ax1.set_yticks([2,4,6,8,10,12,14,16])
     sns.despine(ax=ax1)
 
     # identify significant Friedman's test and indicate on plot
@@ -836,15 +840,15 @@ def mean_rank_textures(df):
         p = friedman[(friedman['Metric'] == 'roughness') & (friedman['Texture name'] == sorted[i])]
         p = np.array(p['p'])
         if p < .05:
-            ax1.scatter(i, 16.5, marker='*', c='black')
+            ax1.scatter(i, 16.1, marker='*', c='black', s=3)
 
     # kde plot to show spread of scores
-    sns.kdeplot(data=df_roughness, y='Rank', hue='Condition', hue_order=['walking', 'sitting', 'hand'], \
-                ax=ax4, legend=False)
-    ax4.set_title('Smooth - Rough')
-    ax4.set_ylim(0, 17)
-    ax4.set_yticks([0, 2, 4, 6, 8, 10, 12, 14, 16])
-    sns.despine(ax=ax4)
+    #sns.kdeplot(data=df_roughness, y='Rank', hue='Condition', hue_order=['walking', 'sitting', 'hand'], \
+    #            ax=ax4, legend=False)
+    #ax4.set_title('Smooth - Rough')
+    #ax4.set_ylim(0, 17)
+    #ax4.set_yticks([0, 2, 4, 6, 8, 10, 12, 14, 16])
+    #sns.despine(ax=ax4)
 
     # ------------------------------------------------ Hardness ------------------------------------------------ #
 
@@ -853,19 +857,22 @@ def mean_rank_textures(df):
 
     # plot mean rating for each participant
     sns.swarmplot(data=df_hardness, x="Name", y="Rank", hue="Condition",
-                  hue_order=['walking', 'sitting', 'hand'], dodge=True, alpha=.5, ax=ax2, order=sorted, size=3.)
+                  hue_order=['walking', 'sitting', 'hand'], dodge=True, alpha=.5, ax=ax2, order=sorted, size=1.5)
     # plot mean rating from all participants
     sns.pointplot(
         data=df_hardness, x="Name", y="Rank", hue="Condition",
         hue_order=['walking', 'sitting', 'hand'], marker="-", ax=ax2, join=False,
-        dodge=.57, markers="_", markersize=70, errorbar=0, errwidth=0, order=sorted, legend=False, scale=1.5)
+        dodge=.57, markers="_", markersize=40, errorbar=0, errwidth=0, order=sorted, legend=False, scale=.7)
     ax2.legend([], [], frameon=False)
-    ax2.set_title('Soft - Hard')
+    ax2.set_title('Soft - Hard', fontsize=9)
     ax2.set_xticklabels(sorted, rotation=80)
-    ax2.set_ylabel('Rank')
-    ax2.set_xlabel('Texture')
-    ax2.set_ylim(0, 17)
-    ax2.set_yticks([0, 2, 4, 6, 8, 10, 12, 14, 16])
+    ax2.set_xticklabels(['','','','','','','','','','','','','','','',''])
+    ax2.set_ylabel('Rank', fontsize=8)
+    #ax2.set_xlabel('Texture')
+    ax2.set_xlabel('')
+    ax2.set_ylim(0.8, 16.35)
+    #ax2.set_yticks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
+    ax2.set_yticks([2, 4, 6, 8, 10, 12, 14, 16])
     sns.despine(ax=ax2)
 
     # identify significant Friedman's test and indicate on plot
@@ -873,15 +880,15 @@ def mean_rank_textures(df):
         p = friedman[(friedman['Metric'] == 'hardness') & (friedman['Texture name'] == sorted[i])]
         p = np.array(p['p'])
         if p < .05:
-            ax2.scatter(i, 16.5, marker='*', c='black')
+            ax2.scatter(i, 16.1, marker='*', c='black',s=3)
 
     # kde plot to show spread of scores
-    ax5.set_title('Soft - Hard')
-    sns.kdeplot(data=df_hardness, y='Rank', hue='Condition', hue_order=['walking', 'sitting', 'hand'], \
-                ax=ax5, legend=False)
-    ax5.set_ylim(0, 17)
-    sns.despine(ax=ax5)
-    ax5.set_yticks([0, 2, 4, 6, 8, 10, 12, 14, 16])
+    #ax5.set_title('Soft - Hard')
+    #sns.kdeplot(data=df_hardness, y='Rank', hue='Condition', hue_order=['walking', 'sitting', 'hand'], \
+    #            ax=ax5, legend=False)
+    #ax5.set_ylim(0, 17)
+    #sns.despine(ax=ax5)
+    #ax5.set_yticks([0, 2, 4, 6, 8, 10, 12, 14, 16])
 
     # ------------------------------------------------ Slipperiness ------------------------------------------------ #
 
@@ -890,19 +897,21 @@ def mean_rank_textures(df):
 
     # plot mean rating for each participant
     sns.swarmplot(data=df_slipperiness, x="Name", y="Rank", hue="Condition",
-        hue_order=['walking','sitting','hand'], dodge=True, alpha=.5, ax=ax3, order=sorted, size=3.)
+        hue_order=['walking','sitting','hand'], dodge=True, alpha=.5, ax=ax3, order=sorted, size=1.5)
     # plot mean rating from all participants
     sns.pointplot(
         data=df_slipperiness, x="Name", y="Rank", hue="Condition",
         hue_order=['walking','sitting','hand'], marker="-", ax=ax3, join=False,
-        dodge=.57, markers="_", markersize=70, errorbar=0, errwidth=0, order=sorted, legend=False, scale=1.5)
+        dodge=.57, markers="_", markersize=40, errorbar=0, errwidth=0, order=sorted, legend=False, scale=.7)
     ax3.legend([], [], frameon=False)
-    ax3.set_title('Slippery - Sticky')
+    ax3.set_title('Slippery - Sticky', fontsize=9)
     ax3.set_xticklabels(sorted, rotation=80)
-    ax3.set_ylabel('Rank')
-    ax3.set_xlabel('Texture')
-    ax3.set_ylim(0, 17)
-    ax3.set_yticks([0,2,4,6,8,10,12,14,16])
+    ax3.set_ylabel('Rank', fontsize=8)
+    ax3.set_xlabel('Texture', fontsize=8)
+    ax3.set_ylim(0.8, 16.35)
+    #ax3.set_yticks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
+    ax3.set_yticks([2, 4, 6, 8, 10, 12, 14, 16])
+    #ax3.set_xticks([])
     sns.despine(ax=ax3)
 
     # identify significant Friedman's test and indicate on plot
@@ -910,19 +919,21 @@ def mean_rank_textures(df):
         p = friedman[(friedman['Metric'] == 'slipperiness') & (friedman['Texture name'] == sorted[i])]
         p = np.array(p['p'])
         if p < .05:
-            ax3.scatter(i, 16.5, marker='*', c='black')
+            ax3.scatter(i, 16.1, marker='*', c='black', s=3.)
 
     # kde plot to show spread of scores
-    ax6.set_title('Slippery - Sticky')
-    sns.kdeplot(data=df_slipperiness, y='Rank', hue='Condition', hue_order=['walking', 'sitting', 'hand'], \
-                ax=ax6, legend=False)
-    ax6.set_ylim(0, 17)
-    sns.despine(ax=ax6)
+    #ax6.set_title('Slippery - Sticky')
+    #sns.kdeplot(data=df_slipperiness, y='Rank', hue='Condition', hue_order=['walking', 'sitting', 'hand'], \
+    #            ax=ax6, legend=False)
+    #ax6.set_ylim(0, 17)
+    #sns.despine(ax=ax6)
 
     # space subplots
     plt.tight_layout()
     # save figure
     plt.savefig('../individual_figures/mean_rank_per_texture.png')
+    plt.savefig('../individual_figures/mean_rank_per_texture.svg', dpi=600)
+
 
 
 def correlate_metrics_within_conditions(df):
@@ -1197,45 +1208,91 @@ def multiple_regression(df):
     res = est.summary()
     print(res)
 
+    def func(x, a, b, c):
+        return a * np.exp(-b * x) + c  # a and d are redundant
+
     # define plot parameters
     plt.close('all')
-    fig = plt.figure(constrained_layout=True, dpi=300, figsize=(6, 2))
-    plt.rcParams.update({'font.size': 5})
-    gs = GridSpec(1, 3, figure=fig)
-    ax1 = fig.add_subplot(gs[0])
-    ax2 = fig.add_subplot(gs[1])
-    ax3 = fig.add_subplot(gs[2])
+    fig = plt.figure(constrained_layout=True, dpi=600, figsize=(3.14961, 3.14961))
+    plt.rcParams.update({'font.size': 6.5})
+    plt.rcParams["font.family"] = "Arial"
+    gs = GridSpec(2, 2, figure=fig)
+    ax1 = fig.add_subplot(gs[0,0])
+    ax2 = fig.add_subplot(gs[0,1])
+    ax3 = fig.add_subplot(gs[1,0])
+    ax4 = fig.add_subplot(gs[1,1])
 
     # plot scatterplot between roughness and stability
-    sns.scatterplot(x=roughness, y=stability, color='green', ax=ax1, s=15)
+    sns.scatterplot(x=roughness, y=stability, color='limegreen', ax=ax1, s=15)
     sns.despine(ax=ax1)
     ax1.set_xlim(0, 3.5)
     ax1.set_ylim(0, 2)
     ax1.set_xticks([0, 1, 2, 3])
     ax1.set_yticks([0, 1, 2])
-    ax1.set_ylabel('Stability')
-    ax1.set_xlabel('Smooth - rough')
+    ax1.set_ylabel('Mean ratio\nUnstable to Stable', fontsize=8)
+    ax1.set_title('Roughness', fontsize=9)
+    ax1.set_xlabel('Smooth to Rough', fontsize=8)
+    # popt, pcov = curve_fit(func, roughness, stability, maxfev=10000)
+    # x = np.arange(np.min(roughness), 3.5, 0.25)
+    # y = func(x, popt[0], popt[1], popt[2])#, popt[3])
+    # y[y < 0] = 0.
+    # ax1.plot(x, y, color='black')
+
 
     # plot scatterplot between hardness and stability
-    sns.scatterplot(x=hardness, y=stability, color='blue', ax=ax2, s=15)
+    sns.scatterplot(x=hardness, y=stability, color='royalblue', ax=ax2, s=15)
     sns.despine(ax=ax2)
     ax2.set_xlim(0, 3.5)
     ax2.set_ylim(0, 2)
     ax2.set_xticks([0, 1, 2, 3])
     ax2.set_yticks([0, 1, 2])
-    ax2.set_xlabel('Soft - hard')
+    ax2.set_xlabel('Soft - hard', fontsize=8)
+    ax2.set_title('Hardness', fontsize=9)
+    ax2.set_xlabel('Soft to Hard', fontsize=8)
+    # popt, pcov = curve_fit(func, hardness, stability, maxfev=10000)
+    # x = np.arange(np.min(hardness), 3.5, 0.25)
+    # y = func(x, popt[0], popt[1], popt[2])#, popt[3])
+    # y[y < 0] = 0.
+    # ax2.plot(x, y, color='black')
 
     # plot scatterplot between slipperiness and stability
-    sns.scatterplot(x=slipperiness, y=stability, color='red', ax=ax3, s=15)
+    sns.scatterplot(x=slipperiness, y=stability, color='orangered', ax=ax3, s=15)
     sns.despine(ax=ax3)
     ax3.set_xlim(0, 3.5)
     ax3.set_ylim(0, 2)
     ax3.set_xticks([0, 1, 2, 3])
     ax3.set_yticks([0, 1, 2])
-    ax3.set_xlabel('Slippery - sticky')
+    #ax3.set_xlabel('Slippery - sticky', fontsize=8)
+    #ax3.set_ylabel('Mean ratio\nUnstable to Stable', fontsize=8)
+    ax3.set_ylabel('Mean ratio\nUnstable to Stable', fontsize=8)
+    ax3.set_title('Stickiness', fontsize=9)
+    ax3.set_xlabel('Slippery to Sticky\nMean ratio', fontsize=8)
+    # popt, pcov = curve_fit(func, slipperiness, stability, maxfev=10000)
+    # x = np.arange(np.min(slipperiness), 3.5, 0.25)
+    # y = func(x, popt[0], popt[1], popt[2])#, popt[3])
+    # y[y < 0] = 0.
+    # ax3.plot(x, y, color='black')
+
+    # plot the final regression model
+    predicted = .2272*roughness + .2891*hardness + -.4666*slipperiness + .9500
+    sns.scatterplot(x=stability, y=predicted, color='black', ax=ax4, s=15)
+    sns.despine(ax=ax4)
+    ax4.set_xlim(0, 2)
+    ax4.set_ylim(0, 2)
+    ax4.set_xticks([0, 1, 2])
+    ax4.set_yticks([0, 1, 2])
+    ax4.set_ylabel('Actual mean ratio', fontsize=8)
+    ax4.set_xlabel('Unstable to Stable\nPredicted mean ratio', fontsize=8)
+    ax4.set_title('Final regression model', fontsize=9)
+    #popt, pcov = curve_fit(func, stability, predicted, maxfev=10000)
+    #x = np.arange(np.min(stability), 3.5, 0.25)
+    #y = func(x, popt[0], popt[1], popt[2])# , popt[3])
+    #y[y < 0] = 0.
+    #ax4.plot(x, y, color='black')
 
     # save plot
     plt.savefig('../individual_figures/single_value_per_texture_relation_to_stability.png')
+    plt.savefig('../individual_figures/single_value_per_texture_relation_to_stability.svg', dpi=600)
 
 
 def between_condition_ppt_level_heatmap():
@@ -1405,8 +1462,9 @@ def tidy_rank_per_condition(df):
         plotting_df.loc[idxs, 'Name'] = texture_names_simple[i]
 
 
-    fig = plt.figure(constrained_layout=True, dpi=100, figsize=(20, 7))
-    plt.rcParams.update({'font.size': 10})
+    fig = plt.figure(constrained_layout=True, dpi=600, figsize=(6.85, 4))
+    plt.rcParams.update({'font.size': 6.5})
+    plt.rcParams["font.family"] = "Arial"
     gs = GridSpec(1, 3, figure=fig)
 
     ax1 = fig.add_subplot(gs[0])
@@ -1417,45 +1475,56 @@ def tidy_rank_per_condition(df):
 
 
     hardness = plotting_df[plotting_df['Metric'] == 'hardness']
-    ax1.set_title('Hardness')
-    sns.pointplot(data=hardness, x='Condition', y='Rank', hue='Name', ax=ax1,
-                  hue_order=list(texture_names_simple.values()), scale=0.9, capsize=.05,  # errorbar='sd',\
+    ax2.set_title('Hardness\n', fontsize=9)
+    sns.pointplot(data=hardness, x='Condition', y='Rank', hue='Name', ax=ax2,
+                  hue_order=list(texture_names_simple.values()), scale=0.5, capsize=.05,  # errorbar='sd',\
                   plot_kws=dict(alpha=0.3))
-    plt.setp(ax1.collections, alpha=.7)  # for the markers
-    plt.setp(ax1.lines, alpha=.3)  # for the lines)
-    ax1.set_ylim(0, 17)
-    sns.despine(ax=ax1)
-    ax1.set_ylabel('Rank \n Soft to Hard')
-    ax1.legend(bbox_to_anchor=(1.02, 1), loc=2, borderaxespad=0.)
+    plt.setp(ax2.collections, alpha=.7, clip_on=False)  # for the markers
+    plt.setp(ax2.lines, alpha=.3, clip_on=False)  # for the lines)
+    ax2.set_ylim(0.8, 16)
+    ax2.set_yticks([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16])
+    sns.despine(ax=ax2)
+    #ax2.set_ylabel('Rank \n Soft to Hard')
+    ax2.set_ylabel('Soft to Hard', fontsize=8)
+    #ax2.legend(bbox_to_anchor=(1.02, 1), loc=2, borderaxespad=0.)
+    ax2.legend([], [], frameon=False)
+    ax2.set_xticklabels(['Walking', 'Sitting', 'Hand'])
 
     # sns.set_palette(list(texture_colors_roughness.values()))
     roughness = plotting_df[plotting_df['Metric'] == 'roughness']
-    ax2.set_title('Roughness')
-    sns.pointplot(data=roughness, x='Condition', y='Rank', hue='Name', ax=ax2,
-                  hue_order=list(texture_names_simple.values()), scale=0.9, capsize=.05,  # errorbar='sd',\
+    ax1.set_title('Roughness\n', fontsize=9)
+    sns.pointplot(data=roughness, x='Condition', y='Rank', hue='Name', ax=ax1,
+                  hue_order=list(texture_names_simple.values()), scale=0.5, capsize=.05,  # errorbar='sd',\
                   plot_kws=dict(alpha=0.3))
-    plt.setp(ax2.collections, alpha=.7)  # for the markers
-    plt.setp(ax2.lines, alpha=.3)  # for the lines)
-    ax2.set_ylim(0, 17)
-    sns.despine(ax=ax2)
-    ax2.set_ylabel('Rank \n Smooth to Rough')
-    ax2.legend(bbox_to_anchor=(1.02, 1), loc=2, borderaxespad=0.)
+    plt.setp(ax1.collections, alpha=.7, clip_on=False)  # for the markers
+    plt.setp(ax1.lines, alpha=.3, clip_on=False)  # for the lines)
+    ax1.set_ylim(0.8, 16)
+    ax1.set_yticks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
+    sns.despine(ax=ax1)
+    ax1.set_ylabel('Rank \n Smooth to Rough', fontsize=8)
+    #ax1.legend(bbox_to_anchor=(1.02, 1), loc=2, borderaxespad=0.)
+    ax1.legend([], [], frameon=False)
+    ax1.set_xticklabels(['Walking', 'Sitting', 'Hand'])
 
     # sns.set_palette(list(texture_colors_slipperiness.values()))
     slipperiness = plotting_df[plotting_df['Metric'] == 'slipperiness']
-    ax3.set_title('Slipperiness')
+    ax3.set_title('Stickiness\n', fontsize=9)
     sns.pointplot(data=slipperiness, x='Condition', y='Rank', hue='Name', ax=ax3,
-                  hue_order=list(texture_names_simple.values()), scale=0.9, capsize=.05,  # errorbar='sd',\
+                  hue_order=list(texture_names_simple.values()), scale=0.5, capsize=.05,  # errorbar='sd',\
                   plot_kws=dict(alpha=0.3))
-    plt.setp(ax3.collections, alpha=.7)  # for the markers
-    plt.setp(ax3.lines, alpha=.3)  # for the lines)
-    ax3.set_ylim(0, 17)
+    plt.setp(ax3.collections, alpha=.7, clip_on=False)  # for the markers
+    plt.setp(ax3.lines, alpha=.3, clip_on=False)  # for the lines)
+    ax3.set_ylim(0.8, 16)
+    ax3.set_yticks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
     sns.despine(ax=ax3)
-    ax3.set_ylabel('Rank \n Slippery to Sticky')
-    ax3.legend(bbox_to_anchor=(1.02, 1), loc=2, borderaxespad=0.)
+    #ax3.set_ylabel('Rank \n Slippery to Sticky')
+    ax3.set_ylabel('Slippery to Sticky', fontsize=8)
+    ax3.legend(bbox_to_anchor=(1.02, 1), loc=2, borderaxespad=0., title='Texture')
+    ax3.set_xticklabels(['Walking', 'Sitting', 'Hand'])
 
-    plt.subplots_adjust(wspace=1.1)
-    plt.savefig('../individual_figures/texture_rank_across_conditions.png')
+    plt.subplots_adjust(wspace=.25)
+    plt.savefig('../individual_figures/texture_rank_across_conditions.png', bbox_inches='tight')
+    plt.savefig('../individual_figures/texture_rank_across_conditions.svg', bbox_inches='tight')
 
 
 def non_parametric_rm_ANOVA_rank(df):
@@ -1560,3 +1629,259 @@ def non_parametric_rm_t_test_rank(df):
     #wilcoxen_df.to_csv('../stats_output/wilcoxen.csv')
     #wilcoxen_df.to_csv('../stats_output/wilcoxen2.csv')
     wilcoxen_df.to_csv('../stats_output/wilcoxen_rank.csv')
+
+
+def texture_level_correlate_metrics_between_conditions_textures(df):
+    """ Run a correlation for each metric between conditions
+
+    :param df:
+    :return:
+    """
+
+    df = df[df['Trial'] == 2.0] # only use mean ratio per participant
+
+    # SINGLE VALUE PER TEXTRUE
+
+    fig = plt.figure(constrained_layout=True, dpi=300, figsize=(15, 15))
+    plt.rcParams.update({'font.size': 5})
+    gs = GridSpec(3, 3, figure=fig)
+
+    ax1 = fig.add_subplot(gs[0])
+    ax2 = fig.add_subplot(gs[1])
+    ax3 = fig.add_subplot(gs[2])
+    ax4 = fig.add_subplot(gs[3])
+    ax5 = fig.add_subplot(gs[4])
+    ax6 = fig.add_subplot(gs[5])
+    ax7 = fig.add_subplot(gs[6])
+    ax8 = fig.add_subplot(gs[7])
+    ax9 = fig.add_subplot(gs[8])
+
+    axes = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9]
+
+    df_ranks = pd.DataFrame({'Rank'})
+    i = 0
+
+    comparisons = [['walking','sitting'], ['walking','hand'],['sitting','hand']]
+
+    for metric in dimensions['sitting']:
+
+        metric_df = df[df['Metric'] == metric]
+
+        for comparison in comparisons:
+
+            comparison_df = metric_df[(metric_df['Condition'] == comparison[0]) | (metric_df['Condition'] == comparison[1])]
+
+            pivoted = pd.pivot_table(comparison_df, values='Rank', index=['Condition','Participant'],
+                                 columns=['Texture'])
+
+            sns.heatmap(pivoted.corr(method='spearman'), vmin=-1, vmax=1., ax=axes[i], square=True, annot=False, fmt=".2f", \
+                        cmap='viridis', xticklabels=list(texture_names_simple.values()), yticklabels=list(texture_names_simple.values()))
+            axes[i].set_title(metric + ': ' + comparison[0] + ' - ' + comparison[1])
+
+            i+=1
+
+    plt.savefig('../individual_figures/texture_level_correlations.png')
+
+
+
+    # get p-values
+    correlation_df = pd.DataFrame({'Metric': [], 'texture': [], 'covariate1': [], 'covariate2': [], 'r': [], 'p': []})
+    for metric in dimensions['sitting']:
+
+        metric_df = df[df['Metric'] == metric]
+
+        for condition1 in dimensions:
+
+            condition_df_1 = metric_df[metric_df['Condition'] == condition1]
+            if condition1 == 'hand':# or condition2 == 'hand':
+                condition_df_1 = condition_df_1[condition_df_1['Participant'] != 'PPT_012']
+            #condition_df_1 = condition_df_1.sort_values(by=['Texture'])
+            condition_df_1 = condition_df_1.sort_values(by=['Texture','Participant'])#.groupby('Texture').mean()
+            #print(condition_df_1['Mean ratio'])
+            #exit()
+
+            for condition2 in dimensions:
+
+                condition_df_2 = metric_df[metric_df['Condition'] == condition2]
+                if condition2 == 'hand':# or condition2 == 'hand':
+                    condition_df_2 = condition_df_2[condition_df_2['Participant'] != 'PPT_012']
+                condition_df_2 = condition_df_2.sort_values(by=['Texture','Participant'])#.groupby('Texture').mean()
+
+                # remove participant 12 from any comparison involving the hand condition, which they did not complete
+                if condition1 == 'hand' or condition2 == 'hand':
+                    condition_df_1 = condition_df_1[condition_df_1['Participant'] != 'PPT_012']
+                    condition_df_2 = condition_df_2[condition_df_2['Participant'] != 'PPT_012']
+
+                for i in range(1,17):
+
+                    condition_df_1_text = condition_df_1[condition_df_1['Texture'] == i]
+                    condition_df_2_text = condition_df_2[condition_df_2['Texture'] == i]
+
+                    corr = stats.spearmanr(condition_df_1_text['Mean ratio'], condition_df_2_text['Mean ratio'])
+
+
+                    df_single = pd.DataFrame(
+                        {'Metric': [metric], 'texture': [i], 'covariate1': [condition1], 'covariate2': [condition2], 'r': [corr[0]],
+                         'p': [corr[1]]})
+
+                    correlation_df = pd.concat([correlation_df, df_single])
+
+    correlation_df.to_csv('../stats_output/texture_level_correlating_metrics_between_conditions.csv')
+
+def correlation_comparison():
+
+
+    new_df = pd.DataFrame({'Comparison': [], 'Data': [], 'r': []})
+
+    df3 = pd.read_csv('../stats_output/all_inter_subject_correlations.csv')
+
+    for dimension in ['roughness', 'hardness', 'slipperiness']:
+
+
+        for condition in ['walking', 'sitting', 'hand']:
+            inter_data = df3[(df3['Metric'] == dimension) & (df3['Condition'] == condition)]
+
+            inter_df = pd.DataFrame(
+                {'Comparison': [dimension + '-' + condition] * inter_data.shape[0],
+                 'Data': ['inter'] * inter_data.shape[0], 'r': inter_data['r']})
+
+            new_df = pd.concat([new_df, inter_df])
+
+
+    df1 = pd.read_csv('../stats_output/ppt_single_value_per_texture_correlating_metrics_between_conditions2.csv')
+
+    comparisons = [['walking', 'sitting'], ['walking', 'hand'], ['sitting', 'hand']]
+
+    for dimension in ['roughness','hardness','slipperiness']:
+        for comparison in comparisons:
+            ppt_data = df1[(df1['Metric'] == dimension) & (df1['covariate1'] == comparison[0]) & (df1['covariate2'] == comparison[1])]
+
+            ppt_df = pd.DataFrame({'Comparison': [dimension + '-' + comparison[0] + '-' + comparison[1]] * ppt_data.shape[0],
+                                   'Data': ['participant'] * ppt_data.shape[0], 'r': ppt_data['r']})
+
+            new_df = pd.concat([new_df, ppt_df])
+
+
+    df2 = pd.read_csv('../stats_output/texture_level_correlating_metrics_between_conditions.csv')
+
+    for dimension in ['roughness','hardness','slipperiness']:
+        for comparison in comparisons:
+            txt_data = df2[(df2['Metric'] == dimension) & (df2['covariate1'] == comparison[0]) & (df2['covariate2'] == comparison[1])]
+
+            txt_df = pd.DataFrame({'Comparison': [dimension + '-' + comparison[0] + '-' + comparison[1]] * txt_data.shape[0],
+                                   'Data': ['textures'] * txt_data.shape[0], 'r': txt_data['r']})
+
+            new_df = pd.concat([new_df, txt_df])
+
+    plot_inter = new_df[new_df['Data'] == 'inter']
+    plot_ppt = new_df[new_df['Data'] == 'participant']
+
+    fig = plt.figure(constrained_layout=True, dpi=600, figsize=(6.85, 6.85))
+    plt.rcParams.update({'font.size': 6.5})
+    plt.rcParams["font.family"] = "Arial"
+    gs = GridSpec(1, 2, figure=fig)
+
+    palette = ['limegreen', 'limegreen', 'limegreen', 'royalblue', 'royalblue', 'royalblue', 'orangered', 'orangered',
+               'orangered', 'limegreen', 'limegreen', 'limegreen', 'royalblue', 'royalblue', 'royalblue', 'orangered',
+               'orangered', 'orangered']
+    sns.set_palette(palette)
+
+    ax1 = fig.add_subplot(gs[0])
+    ax2 = fig.add_subplot(gs[1])
+
+    sns.swarmplot(data=plot_inter, x='Comparison', y='r', ax=ax1, alpha=.5, size=2, hue='Comparison', \
+                  order=['roughness-walking', 'roughness-sitting', 'roughness-hand', \
+                         'hardness-walking', 'hardness-sitting', 'hardness-hand', \
+                         'slipperiness-walking', 'slipperiness-sitting', 'slipperiness-hand'])
+    sns.pointplot(data=plot_inter, x='Comparison', y='r', marker="-", join=False,
+                  markers="_", markersize=70, errorbar=0, errwidth=0, legend=False, scale=2, ax=ax1, hue='Comparison', \
+                  order=['roughness-walking', 'roughness-sitting', 'roughness-hand', \
+                         'hardness-walking', 'hardness-sitting', 'hardness-hand', \
+                         'slipperiness-walking', 'slipperiness-sitting', 'slipperiness-hand'])
+    ax1.set_xticklabels(labels=['Walking', 'Sitting', 'Hand', \
+                                'Walking', 'Sitting', 'Hand', \
+                                'Walking', 'Sitting', 'Hand'], rotation=80)
+    ax1.set_xlabel('Roughness                 Hardness                    Stickiness\nCondition', fontsize=8)
+    ax1.set_ylim(-.25, 1.0)
+    ax1.legend([], [], frameon=False)
+    sns.despine(ax=ax1)
+    ax1.set_ylabel('Correlation coefficient', fontsize=8)
+
+    sns.swarmplot(data=plot_ppt, x='Comparison', y='r', ax=ax2, alpha=.5, size=5, hue='Comparison', \
+                  order=['roughness-walking-sitting', 'roughness-walking-hand', 'roughness-sitting-hand', \
+                         'hardness-walking-sitting', 'hardness-walking-hand', 'hardness-sitting-hand', \
+                         'slipperiness-walking-sitting', 'slipperiness-walking-hand', 'slipperiness-sitting-hand'])
+    sns.pointplot(data=plot_ppt, x='Comparison', y='r', marker="-", join=False,
+                  markers="_", markersize=70, errorbar=0, errwidth=0, legend=False, scale=2, ax=ax2, hue='Comparison', \
+                  order=['roughness-walking-sitting', 'roughness-walking-hand', 'roughness-sitting-hand', \
+                         'hardness-walking-sitting', 'hardness-walking-hand', 'hardness-sitting-hand', \
+                         'slipperiness-walking-sitting', 'slipperiness-walking-hand', 'slipperiness-sitting-hand'])
+    ax2.set_xticklabels(labels=['Walking - Sitting', 'Walking - Hand', 'Sitting - Hand', \
+                                'Walking - Sitting', 'Walking - Hand', 'Sitting - Hand', \
+                                'Walking - Sitting', 'Walking - Hand', 'Sitting - Hand'], rotation=80)
+    ax2.set_xlabel('Roughness                 Hardness                    Stickiness\nComparison', fontsize=8)
+    sns.despine(ax=ax2)
+    ax2.legend([], [], frameon=False)
+    ax2.set_ylim(-.25, 1.0)
+    ax2.set_yticks([])
+    ax2.set_ylabel('')
+    ax2.spines["left"].set_visible(False)
+
+    plt.subplots_adjust(wspace=0)
+    plt.savefig('../individual_figures/correlation_comparison.png', bbox_inches='tight', dpi=600)
+    plt.savefig('../individual_figures/correlation_comparison.svg', bbox_inches='tight', dpi=600)
+
+
+
+def metric_legend():
+    fig = plt.figure(constrained_layout=True, dpi=600, figsize=(6.85, 6.85))
+    plt.rcParams.update({'font.size': 6.5})
+    plt.rcParams["font.family"] = "Arial"
+    gs = GridSpec(1, 1, figure=fig)
+
+    ax = fig.add_subplot(gs[0])
+    sns.scatterplot(x=[1], y=[1], c=['limegreen'], label='Roughness')
+    sns.scatterplot(x=[1], y=[1], c=['royalblue'], label='Hardness')
+    sns.scatterplot(x=[1], y=[1], c=['orangered'], label='Stickiness')
+    plt.legend(title='Perceptual dimension')
+    plt.savefig('../individual_figures/metric_legend.svg', dpi=600)
+
+
+def correlation_comparison_stats():
+
+    inter_ppt = pd.read_csv('../stats_output/all_inter_subject_correlations.csv')
+
+    roughness_ppt = inter_ppt[inter_ppt['Metric'] == 'roughness']
+    roughness_ppt_mean_r = roughness_ppt['r'].mean()
+    hardness_ppt = inter_ppt[inter_ppt['Metric'] == 'hardness']
+    hardness_ppt_mean_r = hardness_ppt['r'].mean()
+    slipperiness_ppt = inter_ppt[inter_ppt['Metric'] == 'slipperiness']
+    slipperiness_ppt_mean_r = slipperiness_ppt['r'].mean()
+
+
+    inter_condition = pd.read_csv('../stats_output/ppt_single_value_per_texture_correlating_metrics_between_conditions2.csv')
+    inter_condition = inter_condition[inter_condition['covariate1'] != inter_condition['covariate2']]
+    inter_condition = inter_condition[((inter_condition['covariate1'] == 'walking') & (inter_condition['covariate2'] == 'sitting')) | \
+                                      ((inter_condition['covariate1'] == 'walking') & (inter_condition['covariate2'] == 'hand')) | \
+                                      ((inter_condition['covariate1'] == 'sitting') & (inter_condition['covariate2'] == 'hand'))]
+
+    roughness_cond = inter_condition[inter_condition['Metric'] == 'roughness']
+    roughness_cond_mean_r = roughness_cond['r'].mean()
+    hardness_cond = inter_condition[inter_condition['Metric'] == 'hardness']
+    hardness_cond_mean_r = hardness_cond['r'].mean()
+    slipperiness_cond = inter_condition[inter_condition['Metric'] == 'slipperiness']
+    slipperiness_cond_mean_r = slipperiness_cond['r'].mean()
+
+    print("------------------------------------------------------------------------------------------------")
+    print('differences in correlations of roughness between-participans and between-conditions: ',
+          independent_corr(roughness_ppt_mean_r, roughness_cond_mean_r, roughness_ppt.shape[0], roughness_cond.shape[0], method='fisher'))
+
+    print("------------------------------------------------------------------------------------------------")
+    print('differences in correlations of hardness between-participans and between-conditions: ',
+          independent_corr(hardness_ppt_mean_r, hardness_cond_mean_r, hardness_ppt.shape[0], hardness_cond.shape[0], method='fisher'))
+
+    print("------------------------------------------------------------------------------------------------")
+    print('differences in correlations of slipperiness between-participans and between-conditions: ',
+          independent_corr(slipperiness_ppt_mean_r, slipperiness_cond_mean_r, slipperiness_ppt.shape[0], slipperiness_cond.shape[0], method='fisher'))
+
+    print("------------------------------------------------------------------------------------------------")
