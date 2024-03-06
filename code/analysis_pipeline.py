@@ -9,6 +9,7 @@ import scipy.stats
 import seaborn as sns
 from analysis_functions import *
 
+
 # calculate and print participant mean (std) age
 participant_demographics()
 
@@ -32,7 +33,8 @@ correlate_metrics_between_conditions(df)
 # compare spread of scores between conditions
 spread_of_scores_between_conditions(df)
 
-
+# compare between and within participant correlations
+correlation_comparison_stats()
 
 # plot rank per texture across conditions
 tidy_rank_per_condition(df)
@@ -42,6 +44,12 @@ inter_participant_correlate_metrics_between_conditions(df)
 
 # calculate mean correlations for each metric across conditions at participant level
 calculate_mean_ppt_level_correlations_metrics_between_conditions()
+
+# run correlations between conditions at texture level
+texture_level_correlate_metrics_between_conditions_textures(df)
+
+# compare correlations for significance
+correlation_comparison()
 
 # run Friedman non parametric repeated measures ANOVA and save result to .csv
 non_parametric_rm_ANOVA(df)
