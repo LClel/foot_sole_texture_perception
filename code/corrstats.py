@@ -109,8 +109,3 @@ def independent_corr(xy, ab, n, n2 = None, twotailed=True, conf_level=0.95, meth
 print('differences in correlations of roughness between conditions: ', dependent_corr(.95, .87, .83, 16, method='steiger'))
 print('differences in correlations of hardness between conditions: ', dependent_corr(1.00, .97, .97, 16, method='steiger'))
 print('differences in correlations of slipperiness between conditions: ', dependent_corr(.80, .83, .76, 16, method='steiger'))
-
-
-print('differences in correlations of roughness between conditions: ', dependent_corr(.74, .67, .71, 320, method='steiger'))
-print('differences in correlations of hardness between conditions: ', dependent_corr(.89, .81, .84, 320, method='steiger'))
-print('differences in correlations of slipperiness between conditions: ', dependent_corr(.82, .74, .74, 320, method='steiger'))
