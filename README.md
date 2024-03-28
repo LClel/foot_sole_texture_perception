@@ -2,7 +2,7 @@
 Preprint is available at BioRxiv, DOI: 
 
 ### Reference
-Cleland, L. D., Rupani, M., Blaise, C., Elmmers, T. J., & Saal, H. P. (2023). Texture perception at the foot sole. BioRxiv.
+Cleland, L. D., Rupani, M., Blaise, C. R., Elmmers, T. J., & Saal, H. P. (2024). Texture perception at the foot sole. BioRxiv.
 
 ## Paper authors:
 * Luke D Cleland<sup>1,2,3*</sup> - ldcleland1@sheffield.ac.uk - repository manager
@@ -44,5 +44,6 @@ All code within this repository is authored by Luke Cleland unless otherwise spe
 * Scikit-learn - 0.23.2    
 
 ## Acknowledgements
-LC is supported by a studentship from the MRC Discovery Medicine North (DiMeN)
+L.D.C. is supported by a studentship from the MRC Discovery Medicine North (DiMeN)
 Doctoral Training Partnership (MR/N013840/1).
+T.J.E. is supported by a Wellcome Trust Sir Henry Wellcome Fellowship (222747/Z/21/Z).
