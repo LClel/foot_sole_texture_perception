@@ -5,11 +5,11 @@ Preprint is available at BioRxiv, DOI:
 Cleland, L. D., Rupani, M., Blaise, C. R., Elmmers, T. J., & Saal, H. P. (2024). Texture perception at the foot sole. BioRxiv.
 
 ## Paper authors:
-* Luke D Cleland<sup>1,2,3*</sup> - ldcleland1@sheffield.ac.uk - repository manager
+* Luke D Cleland<sup>1,2,3*</sup> - ldcleland1@sheffield.ac.uk - repository manager - ORCID ID: 0000-0001-8486-2780
 * Mia Rupani<sup>1</sup>
-* Celia Blaise<sup>1,4</sup>
-* Toby J Ellmers<sup>5</sup> - t.ellmers@imperial.ac.uk
-* Hannes P Saal<sup>1,2,3</sup> - h.saal@sheffield.ac.uk
+* Celia Blaise<sup>1,4</sup> - ORCID ID: 0009-0006-9646-7394
+* Toby J Ellmers<sup>5</sup> - t.ellmers@imperial.ac.uk - ORDIC ID: 0000-0001-9595-6360
+* Hannes P Saal<sup>1,2,3</sup> - h.saal@sheffield.ac.uk - ORCID ID: 0000-0002-7544-0196
 
 <sup>1</sup> Active Touch Laboratory, Department of Psychology, University of Sheffield, Sheffield, UK <br />
 <sup>2</sup> Insigneo Institute for in silico Medicine, University of Sheffield, Sheffield, UK <br />
