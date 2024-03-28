@@ -190,4 +190,4 @@ texture_colors = {1: 'darkgoldenrod',
                   16: 'crimson'}
 
 # color for each presentation condition
-condition_colors = ['#ff218c','#21b1ff','#ffd800']
+condition_colors = ['#ff218c','#21b1ff','#f2d602']
