@@ -784,17 +784,17 @@ def mean_rank_textures(df):
     plt.close('all')
 
     # define plot structure
-    fig = plt.figure(constrained_layout=True, dpi=600, figsize=(4.49, 6))
+    fig = plt.figure(constrained_layout=True, dpi=600, figsize=(6.85, 6))
     plt.rcParams.update({'font.size': 6.5})
     plt.rcParams["font.family"] = "Arial"
-    gs = GridSpec(3, 1, figure=fig)
+    gs = GridSpec(3, 4, figure=fig)
 
-    ax1 = fig.add_subplot(gs[0])#, :3])
-    ax2 = fig.add_subplot(gs[1])#, :3])
-    ax3 = fig.add_subplot(gs[2])#, :3])
-    #ax4 = fig.add_subplot(gs[0, 3])
-    #ax5 = fig.add_subplot(gs[1, 3])
-    #ax6 = fig.add_subplot(gs[2, 3])
+    ax1 = fig.add_subplot(gs[0, :3])
+    ax2 = fig.add_subplot(gs[1, :3])
+    ax3 = fig.add_subplot(gs[2, :3])
+    ax4 = fig.add_subplot(gs[0, 3])
+    ax5 = fig.add_subplot(gs[1, 3])
+    ax6 = fig.add_subplot(gs[2, 3])
 
     # load in Friedman analysis
     friedman = pd.read_csv('../stats_output/friedman_rank.csv')
@@ -830,25 +830,31 @@ def mean_rank_textures(df):
     #ax1.set_xlabel('Texture')
     ax1.set_xticklabels(['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''])
     ax1.set_xlabel('')
-    ax1.set_ylim(0.8, 16.35)
+    ax1.set_ylim(0.8, 16)
     #ax1.set_yticks([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16])
     ax1.set_yticks([2,4,6,8,10,12,14,16])
     sns.despine(ax=ax1)
+
 
     # identify significant Friedman's test and indicate on plot
     for i in range(len(sorted)):
         p = friedman[(friedman['Metric'] == 'roughness') & (friedman['Texture name'] == sorted[i])]
         p = np.array(p['p'])
         if p < .05:
-            ax1.scatter(i, 16.1, marker='*', c='black', s=3)
+            ax1.scatter(i, 16.25, marker='*', c='black', s=3)
 
     # kde plot to show spread of scores
-    #sns.kdeplot(data=df_roughness, y='Rank', hue='Condition', hue_order=['walking', 'sitting', 'hand'], \
-    #            ax=ax4, legend=False)
-    #ax4.set_title('Smooth - Rough')
-    #ax4.set_ylim(0, 17)
-    #ax4.set_yticks([0, 2, 4, 6, 8, 10, 12, 14, 16])
-    #sns.despine(ax=ax4)
+    sns.kdeplot(data=df_roughness, x='Mean ratio', hue='Condition', hue_order=['walking', 'sitting', 'hand'], \
+                ax=ax4, legend=False)
+    ax4.set_title('Smooth - Rough', fontsize=9)
+    ax4.set_xlim(0, 4.5)
+    ax4.set_xticks([0, 2, 4])
+    sns.despine(ax=ax4)
+    ax4.set_xticklabels('')
+    ax4.scatter(2, 0.26, marker='*', c='black', s=3)
+    ax4.set_ylim(0,0.27)
+    ax4.set_xlabel('')
+    ax4.set_ylabel('Density', fontsize=8)
 
     # ------------------------------------------------ Hardness ------------------------------------------------ #
 
@@ -870,7 +876,7 @@ def mean_rank_textures(df):
     ax2.set_ylabel('Rank', fontsize=8)
     #ax2.set_xlabel('Texture')
     ax2.set_xlabel('')
-    ax2.set_ylim(0.8, 16.35)
+    ax2.set_ylim(0.8, 16)
     #ax2.set_yticks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
     ax2.set_yticks([2, 4, 6, 8, 10, 12, 14, 16])
     sns.despine(ax=ax2)
@@ -883,12 +889,17 @@ def mean_rank_textures(df):
             ax2.scatter(i, 16.1, marker='*', c='black',s=3)
 
     # kde plot to show spread of scores
-    #ax5.set_title('Soft - Hard')
-    #sns.kdeplot(data=df_hardness, y='Rank', hue='Condition', hue_order=['walking', 'sitting', 'hand'], \
-    #            ax=ax5, legend=False)
-    #ax5.set_ylim(0, 17)
-    #sns.despine(ax=ax5)
-    #ax5.set_yticks([0, 2, 4, 6, 8, 10, 12, 14, 16])
+    ax5.set_title('Soft - Hard', fontsize=9)
+    sns.kdeplot(data=df_hardness, x='Mean ratio', hue='Condition', hue_order=['walking', 'sitting', 'hand'], \
+                ax=ax5, legend=False)
+    ax5.set_xlim(0, 4.5)
+    sns.despine(ax=ax5)
+    ax5.set_xticks([0,2,4])
+    ax5.set_xticklabels('')
+    ax5.scatter(2, 0.26, marker='*', c='black', s=3)
+    ax5.set_ylim(0, 0.27)
+    ax5.set_xlabel('')
+    ax5.set_ylabel('Density', fontsize=8)
 
     # ------------------------------------------------ Slipperiness ------------------------------------------------ #
 
@@ -908,7 +919,7 @@ def mean_rank_textures(df):
     ax3.set_xticklabels(sorted, rotation=80)
     ax3.set_ylabel('Rank', fontsize=8)
     ax3.set_xlabel('Texture', fontsize=8)
-    ax3.set_ylim(0.8, 16.35)
+    ax3.set_ylim(0.8, 16)
     #ax3.set_yticks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
     ax3.set_yticks([2, 4, 6, 8, 10, 12, 14, 16])
     #ax3.set_xticks([])
@@ -922,11 +933,15 @@ def mean_rank_textures(df):
             ax3.scatter(i, 16.1, marker='*', c='black', s=3.)
 
     # kde plot to show spread of scores
-    #ax6.set_title('Slippery - Sticky')
-    #sns.kdeplot(data=df_slipperiness, y='Rank', hue='Condition', hue_order=['walking', 'sitting', 'hand'], \
-    #            ax=ax6, legend=False)
-    #ax6.set_ylim(0, 17)
-    #sns.despine(ax=ax6)
+    ax6.set_title('Slippery - Sticky', fontsize=9)
+    sns.kdeplot(data=df_slipperiness, x='Mean ratio', hue='Condition', hue_order=['walking', 'sitting', 'hand'], \
+                ax=ax6, legend=False)
+    ax6.set_xlim(0, 4.5)
+    sns.despine(ax=ax6)
+    ax6.set_xticks([0,2,4])
+    ax6.set_ylim(0, 0.27)
+    ax6.set_xlabel('Mean ratio', fontsize=8)
+    ax6.set_ylabel('Density', fontsize=8)
 
     # space subplots
     plt.tight_layout()
@@ -1208,8 +1223,10 @@ def multiple_regression(df):
     res = est.summary()
     print(res)
 
-    def func(x, a, b, c):
-        return a * np.exp(-b * x) + c  # a and d are redundant
+    #def func(x, a, b, c):
+    #    return a * np.exp(-b * x) + c  # a and d are redundant
+    def func(m, x, c):
+        return m * x + c  # a and d are redundant
 
     # define plot parameters
     plt.close('all')
@@ -1232,12 +1249,15 @@ def multiple_regression(df):
     ax1.set_ylabel('Mean ratio\nUnstable to Stable', fontsize=8)
     ax1.set_title('Roughness', fontsize=9)
     ax1.set_xlabel('Smooth to Rough', fontsize=8)
-    # popt, pcov = curve_fit(func, roughness, stability, maxfev=10000)
-    # x = np.arange(np.min(roughness), 3.5, 0.25)
-    # y = func(x, popt[0], popt[1], popt[2])#, popt[3])
-    # y[y < 0] = 0.
-    # ax1.plot(x, y, color='black')
+    popt, pcov = curve_fit(func, roughness, stability, maxfev=10000)
+    x = np.arange(np.min(roughness), 3.5, 0.25)
+    y = func(x, popt[0], popt[1])#, popt[2])#, popt[3])
+    y[y < 0] = 0.
+    ax1.plot(x, y, color='black', lw=1.)
+    print('roughness-stability: ', stats.pearsonr(roughness, stability)[0] ** 2)
+    print(stats.pearsonr(roughness, stability))
 
+    print('----------------------------------------------------')
 
     # plot scatterplot between hardness and stability
     sns.scatterplot(x=hardness, y=stability, color='royalblue', ax=ax2, s=15)
@@ -1249,11 +1269,15 @@ def multiple_regression(df):
     ax2.set_xlabel('Soft - hard', fontsize=8)
     ax2.set_title('Hardness', fontsize=9)
     ax2.set_xlabel('Soft to Hard', fontsize=8)
-    # popt, pcov = curve_fit(func, hardness, stability, maxfev=10000)
-    # x = np.arange(np.min(hardness), 3.5, 0.25)
-    # y = func(x, popt[0], popt[1], popt[2])#, popt[3])
-    # y[y < 0] = 0.
-    # ax2.plot(x, y, color='black')
+    popt, pcov = curve_fit(func, hardness, stability, maxfev=10000)
+    x = np.arange(np.min(hardness), 3.5, 0.25)
+    y = func(x, popt[0], popt[1])#, popt[2])#, popt[3])
+    y[y < 0] = 0.
+    ax2.plot(x, y, color='black', lw=1.)
+    print('hardness-stability: ', stats.pearsonr(hardness, stability)[0] ** 2)
+    print(stats.pearsonr(hardness, stability))
+
+    print('----------------------------------------------------')
 
     # plot scatterplot between slipperiness and stability
     sns.scatterplot(x=slipperiness, y=stability, color='orangered', ax=ax3, s=15)
@@ -1267,11 +1291,15 @@ def multiple_regression(df):
     ax3.set_ylabel('Mean ratio\nUnstable to Stable', fontsize=8)
     ax3.set_title('Stickiness', fontsize=9)
     ax3.set_xlabel('Slippery to Sticky\nMean ratio', fontsize=8)
-    # popt, pcov = curve_fit(func, slipperiness, stability, maxfev=10000)
-    # x = np.arange(np.min(slipperiness), 3.5, 0.25)
-    # y = func(x, popt[0], popt[1], popt[2])#, popt[3])
-    # y[y < 0] = 0.
-    # ax3.plot(x, y, color='black')
+    popt, pcov = curve_fit(func, slipperiness, stability, maxfev=10000)
+    x = np.arange(np.min(slipperiness), 3.5, 0.25)
+    y = func(x, popt[0], popt[1])#, popt[2])#, popt[3])
+    y[y < 0] = 0.
+    ax3.plot(x, y, color='black', lw=1.)
+    print('stickiness-stability: ', stats.pearsonr(slipperiness, stability)[0]**2)
+    print(stats.pearsonr(slipperiness, stability))
+
+    print('----------------------------------------------------')
 
     # plot the final regression model
     predicted = .2272*roughness + .2891*hardness + -.4666*slipperiness + .9500
@@ -1284,11 +1312,17 @@ def multiple_regression(df):
     ax4.set_ylabel('Actual mean ratio', fontsize=8)
     ax4.set_xlabel('Unstable to Stable\nPredicted mean ratio', fontsize=8)
     ax4.set_title('Final regression model', fontsize=9)
-    #popt, pcov = curve_fit(func, stability, predicted, maxfev=10000)
-    #x = np.arange(np.min(stability), 3.5, 0.25)
-    #y = func(x, popt[0], popt[1], popt[2])# , popt[3])
-    #y[y < 0] = 0.
-    #ax4.plot(x, y, color='black')
+    popt, pcov = curve_fit(func, stability, predicted, maxfev=10000)
+    x = np.arange(np.min(stability), 3.5, 0.25)
+    y = func(x, popt[0], popt[1])#, popt[2])# , popt[3])
+    y[y < 0] = 0.
+    ax4.plot(x, y, color='black', lw=1.)
+
+    print('predicted-actual: ', stats.pearsonr(predicted, stability)[0] ** 2)
+    print(stats.pearsonr(predicted, stability))
+
+    print('----------------------------------------------------')
+    exit()
 
     # save plot
     plt.savefig('../individual_figures/single_value_per_texture_relation_to_stability.png')
@@ -1484,13 +1518,10 @@ def tidy_rank_per_condition(df):
     ax2.set_ylim(0.8, 16)
     ax2.set_yticks([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16])
     sns.despine(ax=ax2)
-    #ax2.set_ylabel('Rank \n Soft to Hard')
     ax2.set_ylabel('Soft to Hard', fontsize=8)
-    #ax2.legend(bbox_to_anchor=(1.02, 1), loc=2, borderaxespad=0.)
     ax2.legend([], [], frameon=False)
     ax2.set_xticklabels(['Walking', 'Sitting', 'Hand'])
 
-    # sns.set_palette(list(texture_colors_roughness.values()))
     roughness = plotting_df[plotting_df['Metric'] == 'roughness']
     ax1.set_title('Roughness\n', fontsize=9)
     sns.pointplot(data=roughness, x='Condition', y='Rank', hue='Name', ax=ax1,
@@ -1502,11 +1533,9 @@ def tidy_rank_per_condition(df):
     ax1.set_yticks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
     sns.despine(ax=ax1)
     ax1.set_ylabel('Rank \n Smooth to Rough', fontsize=8)
-    #ax1.legend(bbox_to_anchor=(1.02, 1), loc=2, borderaxespad=0.)
     ax1.legend([], [], frameon=False)
     ax1.set_xticklabels(['Walking', 'Sitting', 'Hand'])
 
-    # sns.set_palette(list(texture_colors_slipperiness.values()))
     slipperiness = plotting_df[plotting_df['Metric'] == 'slipperiness']
     ax3.set_title('Stickiness\n', fontsize=9)
     sns.pointplot(data=slipperiness, x='Condition', y='Rank', hue='Name', ax=ax3,
@@ -1517,7 +1546,6 @@ def tidy_rank_per_condition(df):
     ax3.set_ylim(0.8, 16)
     ax3.set_yticks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
     sns.despine(ax=ax3)
-    #ax3.set_ylabel('Rank \n Slippery to Sticky')
     ax3.set_ylabel('Slippery to Sticky', fontsize=8)
     ax3.legend(bbox_to_anchor=(1.02, 1), loc=2, borderaxespad=0., title='Texture')
     ax3.set_xticklabels(['Walking', 'Sitting', 'Hand'])
@@ -1525,6 +1553,65 @@ def tidy_rank_per_condition(df):
     plt.subplots_adjust(wspace=.25)
     plt.savefig('../individual_figures/texture_rank_across_conditions.png', bbox_inches='tight')
     plt.savefig('../individual_figures/texture_rank_across_conditions.svg', bbox_inches='tight')
+
+
+    fig = plt.figure(constrained_layout=True, dpi=600, figsize=(6.85, 4))
+    plt.rcParams.update({'font.size': 6.5})
+    plt.rcParams["font.family"] = "Arial"
+    gs = GridSpec(1, 3, figure=fig)
+
+    ax1 = fig.add_subplot(gs[0])
+    ax2 = fig.add_subplot(gs[1])
+    ax3 = fig.add_subplot(gs[2])
+
+    sns.set_palette(list(texture_colors.values()))
+
+
+    hardness = plotting_df[plotting_df['Metric'] == 'hardness']
+    ax2.set_title('Hardness\n', fontsize=9)
+    sns.pointplot(data=hardness, x='Condition', y='Rank', hue='Name', ax=ax2,
+                  hue_order=list(texture_names_simple.values()), scale=0.5, capsize=.05,  # errorbar='sd',\
+                  plot_kws=dict(alpha=0.3), markers=['o','*','s','d','p','v','h','*','>','P','X','>','H','D','^','.'])
+    plt.setp(ax2.collections, alpha=.7, clip_on=False)  # for the markers
+    plt.setp(ax2.lines, alpha=.3, clip_on=False)  # for the lines)
+    ax2.set_ylim(0.8, 16)
+    ax2.set_yticks([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16])
+    sns.despine(ax=ax2)
+    ax2.set_ylabel('Soft to Hard', fontsize=8)
+    ax2.legend([], [], frameon=False)
+    ax2.set_xticklabels(['Walking', 'Sitting', 'Hand'])
+
+    roughness = plotting_df[plotting_df['Metric'] == 'roughness']
+    ax1.set_title('Roughness\n', fontsize=9)
+    sns.pointplot(data=roughness, x='Condition', y='Rank', hue='Name', ax=ax1,
+                  hue_order=list(texture_names_simple.values()), scale=0.5, capsize=.05,  # errorbar='sd',\
+                  plot_kws=dict(alpha=0.3), markers=['o','*','s','d','p','v','h','*','>','P','X','>','H','D','^','.'])
+    plt.setp(ax1.collections, alpha=.7, clip_on=False)  # for the markers
+    plt.setp(ax1.lines, alpha=.3, clip_on=False)  # for the lines)
+    ax1.set_ylim(0.8, 16)
+    ax1.set_yticks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
+    sns.despine(ax=ax1)
+    ax1.set_ylabel('Rank \n Smooth to Rough', fontsize=8)
+    ax1.legend([], [], frameon=False)
+    ax1.set_xticklabels(['Walking', 'Sitting', 'Hand'])
+
+    slipperiness = plotting_df[plotting_df['Metric'] == 'slipperiness']
+    ax3.set_title('Stickiness\n', fontsize=9)
+    sns.pointplot(data=slipperiness, x='Condition', y='Rank', hue='Name', ax=ax3,
+                  hue_order=list(texture_names_simple.values()), scale=0.5, capsize=.05,  # errorbar='sd',\
+                  plot_kws=dict(alpha=0.3), markers=['o','*','s','d','p','v','h','*','>','P','X','>','H','D','^','.'])
+    plt.setp(ax3.collections, alpha=.7, clip_on=False)  # for the markers
+    plt.setp(ax3.lines, alpha=.3, clip_on=False)  # for the lines)
+    ax3.set_ylim(0.8, 16)
+    ax3.set_yticks([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16])
+    sns.despine(ax=ax3)
+    ax3.set_ylabel('Slippery to Sticky', fontsize=8)
+    ax3.legend(bbox_to_anchor=(1.02, 1), loc=2, borderaxespad=0., title='Texture')
+    ax3.set_xticklabels(['Walking', 'Sitting', 'Hand'])
+
+    plt.subplots_adjust(wspace=.25)
+    plt.savefig('../individual_figures/texture_rank_across_conditions2.png', bbox_inches='tight')
+    plt.savefig('../individual_figures/texture_rank_across_conditions2.svg', bbox_inches='tight')
 
 
 def non_parametric_rm_ANOVA_rank(df):
@@ -1626,8 +1713,6 @@ def non_parametric_rm_t_test_rank(df):
 
         wilcoxen_df = pd.concat([wilcoxen_df, wilcoxen_df_metric], ignore_index=True)
 
-    #wilcoxen_df.to_csv('../stats_output/wilcoxen.csv')
-    #wilcoxen_df.to_csv('../stats_output/wilcoxen2.csv')
     wilcoxen_df.to_csv('../stats_output/wilcoxen_rank.csv')
 
 
@@ -1658,7 +1743,6 @@ def texture_level_correlate_metrics_between_conditions_textures(df):
 
     axes = [ax1, ax2, ax3, ax4, ax5, ax6, ax7, ax8, ax9]
 
-    df_ranks = pd.DataFrame({'Rank'})
     i = 0
 
     comparisons = [['walking','sitting'], ['walking','hand'],['sitting','hand']]
@@ -1695,17 +1779,15 @@ def texture_level_correlate_metrics_between_conditions_textures(df):
             condition_df_1 = metric_df[metric_df['Condition'] == condition1]
             if condition1 == 'hand':# or condition2 == 'hand':
                 condition_df_1 = condition_df_1[condition_df_1['Participant'] != 'PPT_012']
-            #condition_df_1 = condition_df_1.sort_values(by=['Texture'])
-            condition_df_1 = condition_df_1.sort_values(by=['Texture','Participant'])#.groupby('Texture').mean()
-            #print(condition_df_1['Mean ratio'])
-            #exit()
+            condition_df_1 = condition_df_1.sort_values(by=['Texture','Participant'])
+
 
             for condition2 in dimensions:
 
                 condition_df_2 = metric_df[metric_df['Condition'] == condition2]
                 if condition2 == 'hand':# or condition2 == 'hand':
                     condition_df_2 = condition_df_2[condition_df_2['Participant'] != 'PPT_012']
-                condition_df_2 = condition_df_2.sort_values(by=['Texture','Participant'])#.groupby('Texture').mean()
+                condition_df_2 = condition_df_2.sort_values(by=['Texture','Participant'])
 
                 # remove participant 12 from any comparison involving the hand condition, which they did not complete
                 if condition1 == 'hand' or condition2 == 'hand':
@@ -1743,7 +1825,7 @@ def correlation_comparison():
 
             inter_df = pd.DataFrame(
                 {'Comparison': [dimension + '-' + condition] * inter_data.shape[0],
-                 'Data': ['inter'] * inter_data.shape[0], 'r': inter_data['r']})
+                 'Data': ['inter'] * inter_data.shape[0], 'r': inter_data['r'], 'Dimension': [dimension] * inter_data.shape[0]})
 
             new_df = pd.concat([new_df, inter_df])
 
@@ -1757,7 +1839,7 @@ def correlation_comparison():
             ppt_data = df1[(df1['Metric'] == dimension) & (df1['covariate1'] == comparison[0]) & (df1['covariate2'] == comparison[1])]
 
             ppt_df = pd.DataFrame({'Comparison': [dimension + '-' + comparison[0] + '-' + comparison[1]] * ppt_data.shape[0],
-                                   'Data': ['participant'] * ppt_data.shape[0], 'r': ppt_data['r']})
+                                   'Data': ['participant'] * ppt_data.shape[0], 'r': ppt_data['r'], 'Dimension': [dimension] * ppt_data.shape[0]})
 
             new_df = pd.concat([new_df, ppt_df])
 
@@ -1769,14 +1851,14 @@ def correlation_comparison():
             txt_data = df2[(df2['Metric'] == dimension) & (df2['covariate1'] == comparison[0]) & (df2['covariate2'] == comparison[1])]
 
             txt_df = pd.DataFrame({'Comparison': [dimension + '-' + comparison[0] + '-' + comparison[1]] * txt_data.shape[0],
-                                   'Data': ['textures'] * txt_data.shape[0], 'r': txt_data['r']})
+                                   'Data': ['textures'] * txt_data.shape[0], 'r': txt_data['r'], 'Dimension': [dimension] * txt_data.shape[0]})
 
             new_df = pd.concat([new_df, txt_df])
 
     plot_inter = new_df[new_df['Data'] == 'inter']
     plot_ppt = new_df[new_df['Data'] == 'participant']
 
-    fig = plt.figure(constrained_layout=True, dpi=600, figsize=(6.85, 6.85))
+    fig = plt.figure(constrained_layout=True, dpi=600, figsize=(6.85, 4))
     plt.rcParams.update({'font.size': 6.5})
     plt.rcParams["font.family"] = "Arial"
     gs = GridSpec(1, 2, figure=fig)
@@ -1789,7 +1871,7 @@ def correlation_comparison():
     ax1 = fig.add_subplot(gs[0])
     ax2 = fig.add_subplot(gs[1])
 
-    sns.swarmplot(data=plot_inter, x='Comparison', y='r', ax=ax1, alpha=.5, size=2, hue='Comparison', \
+    sns.swarmplot(data=plot_inter, x='Comparison', y='r', ax=ax1, alpha=.5, size=1, hue='Comparison', \
                   order=['roughness-walking', 'roughness-sitting', 'roughness-hand', \
                          'hardness-walking', 'hardness-sitting', 'hardness-hand', \
                          'slipperiness-walking', 'slipperiness-sitting', 'slipperiness-hand'])
@@ -1807,7 +1889,7 @@ def correlation_comparison():
     sns.despine(ax=ax1)
     ax1.set_ylabel('Correlation coefficient', fontsize=8)
 
-    sns.swarmplot(data=plot_ppt, x='Comparison', y='r', ax=ax2, alpha=.5, size=5, hue='Comparison', \
+    sns.swarmplot(data=plot_ppt, x='Comparison', y='r', ax=ax2, alpha=.5, size=3, hue='Comparison', \
                   order=['roughness-walking-sitting', 'roughness-walking-hand', 'roughness-sitting-hand', \
                          'hardness-walking-sitting', 'hardness-walking-hand', 'hardness-sitting-hand', \
                          'slipperiness-walking-sitting', 'slipperiness-walking-hand', 'slipperiness-sitting-hand'])
@@ -1831,6 +1913,101 @@ def correlation_comparison():
     plt.savefig('../individual_figures/correlation_comparison.png', bbox_inches='tight', dpi=600)
     plt.savefig('../individual_figures/correlation_comparison.svg', bbox_inches='tight', dpi=600)
 
+    fig = plt.figure(constrained_layout=True, dpi=600, figsize=(6.85, 4))
+    plt.rcParams.update({'font.size': 6.5})
+    plt.rcParams["font.family"] = "Arial"
+    gs = GridSpec(1, 1, figure=fig)
+
+    palette = ['limegreen', 'limegreen', 'limegreen', 'royalblue', 'royalblue', 'royalblue', 'orangered', 'orangered',
+               'orangered', 'limegreen', 'limegreen', 'limegreen', 'royalblue', 'royalblue', 'royalblue', 'orangered',
+               'orangered', 'orangered']
+    sns.set_palette(palette)
+
+    ax1 = fig.add_subplot(gs[0])
+
+    sns.swarmplot(data=plot_ppt, x='Comparison', y='r', ax=ax1, alpha=.5, size=4, hue='Comparison', \
+                  order=['roughness-walking-sitting', 'roughness-walking-hand', 'roughness-sitting-hand', \
+                         'hardness-walking-sitting', 'hardness-walking-hand', 'hardness-sitting-hand', \
+                         'slipperiness-walking-sitting', 'slipperiness-walking-hand', 'slipperiness-sitting-hand'])
+    sns.pointplot(data=plot_ppt, x='Comparison', y='r', marker="-", join=False,
+                  markers="_", markersize=70, errorbar=0, errwidth=0, legend=False, scale=2, ax=ax1, hue='Comparison', \
+                  order=['roughness-walking-sitting', 'roughness-walking-hand', 'roughness-sitting-hand', \
+                         'hardness-walking-sitting', 'hardness-walking-hand', 'hardness-sitting-hand', \
+                         'slipperiness-walking-sitting', 'slipperiness-walking-hand', 'slipperiness-sitting-hand'])
+
+    sns.set_palette(['#ff218c','#21b1ff','#f2d602', '#ff218c','#21b1ff','#f2d602', '#ff218c','#21b1ff','#f2d602'])
+    sns.pointplot(data=plot_inter, x='Comparison', y='r', marker="-", join=False,
+                  markers="x", markersize=25, errorbar=0, errwidth=0, legend=False, scale=1.5, ax=ax1, hue='Comparison', \
+                  order=['roughness-walking', 'roughness-sitting', 'roughness-hand', \
+                         'hardness-walking', 'hardness-sitting', 'hardness-hand', \
+                         'slipperiness-walking', 'slipperiness-sitting', 'slipperiness-hand'])
+    ax1.set_xticklabels(labels=['Walking - Sitting', 'Walking - Hand', 'Sitting - Hand', \
+                                'Walking - Sitting', 'Walking - Hand', 'Sitting - Hand', \
+                                'Walking - Sitting', 'Walking - Hand', 'Sitting - Hand'], rotation=80)
+    ax1.set_xlabel('Roughness                 Hardness                    Stickiness\nCondition', fontsize=8)
+    ax1.set_ylim(0, 1.0)
+    ax1.legend([], [], frameon=False)
+    sns.despine(ax=ax1)
+    ax1.set_ylabel('Correlation coefficient', fontsize=8)
+
+
+    #plt.subplots_adjust(wspace=0)
+    plt.savefig('../individual_figures/correlation_comparison2.png', bbox_inches='tight', dpi=600)
+    plt.savefig('../individual_figures/correlation_comparison2.svg', bbox_inches='tight', dpi=600)
+
+    fig = plt.figure(constrained_layout=True, dpi=600, figsize=(6.85, 4))
+    plt.rcParams.update({'font.size': 6.5})
+    plt.rcParams["font.family"] = "Arial"
+    gs = GridSpec(1, 3, figure=fig)
+
+    palette = ['limegreen', 'limegreen', 'limegreen', 'royalblue', 'royalblue', 'royalblue', 'orangered', 'orangered',
+               'orangered', 'limegreen', 'limegreen', 'limegreen', 'royalblue', 'royalblue', 'royalblue', 'orangered',
+               'orangered', 'orangered']
+    sns.set_palette(palette)
+
+    plot_df = pd.concat([plot_inter, plot_ppt])
+    ax1 = fig.add_subplot(gs[0, :2])
+    ax2 = fig.add_subplot(gs[0, 2])
+
+    sns.swarmplot(data=plot_ppt, x='Comparison', y='r', ax=ax1, alpha=.5, size=4, hue='Comparison', \
+                  order=['roughness-walking-sitting', 'roughness-walking-hand', 'roughness-sitting-hand', \
+                         'hardness-walking-sitting', 'hardness-walking-hand', 'hardness-sitting-hand', \
+                         'slipperiness-walking-sitting', 'slipperiness-walking-hand', 'slipperiness-sitting-hand'])
+    sns.pointplot(data=plot_ppt, x='Comparison', y='r', marker="-", join=False,
+                  markers="_", markersize=70, errorbar=0, errwidth=0, legend=False, scale=2, ax=ax1, hue='Comparison', \
+                  order=['roughness-walking-sitting', 'roughness-walking-hand', 'roughness-sitting-hand', \
+                         'hardness-walking-sitting', 'hardness-walking-hand', 'hardness-sitting-hand', \
+                         'slipperiness-walking-sitting', 'slipperiness-walking-hand', 'slipperiness-sitting-hand'])
+    sns.despine(ax=ax1)
+    ax1.set_xticklabels(labels=['Walking - Sitting', 'Walking - Hand', 'Sitting - Hand', \
+                                'Walking - Sitting', 'Walking - Hand', 'Sitting - Hand', \
+                                'Walking - Sitting', 'Walking - Hand', 'Sitting - Hand'], rotation=80)
+    ax1.set_xlabel('Roughness                 Hardness                    Stickiness\nCondition', fontsize=8)
+    ax1.set_ylim(0, 1.0)
+    ax1.legend([], [], frameon=False)
+    ax1.set_ylabel('Correlation coefficient', fontsize=8)
+
+    palette2 = ['limegreen', 'royalblue', 'orangered']
+    sns.set_palette(palette2)
+    sns.pointplot(data=plot_ppt, x='Dimension', y='r', marker='-', join=False,
+                  markers='x', markersize=25, errorbar=0, errwidth=0, legend=False, scale=1, ax=ax2, hue='Dimension',\
+                  order=['roughness', 'hardness', 'slipperiness', 'dummy'])
+    sns.pointplot(data=plot_inter, x='Dimension', y='r', marker='-', join=False,
+                  markers='o', markersize=25, errorbar=0, errwidth=0, legend=False, scale=1, ax=ax2, hue='Dimension',\
+                  order=['roughness', 'hardness', 'slipperiness','dummy'])
+    ax2.set_ylim(0.5, 1.0)
+    ax2.set_yticks([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+    ax2.set_xlim(-0.5, 2.5)
+    ax2.set_xticklabels(labels=['Roughness','Hardness','Stickiness', ''], rotation=80)
+    ax2.set_xlabel('Dimension', fontsize=8)
+    ax2.legend([], [], frameon=False)
+    sns.despine(ax=ax2)
+    ax2.set_ylabel('Correlation coefficient', fontsize=8)
+
+    plt.subplots_adjust(wspace=.5)
+    plt.savefig('../individual_figures/correlation_comparison3.png', bbox_inches='tight', dpi=600)
+    plt.savefig('../individual_figures/correlation_comparison3.svg', bbox_inches='tight', dpi=600)
+
 
 
 def metric_legend():
@@ -1845,6 +2022,18 @@ def metric_legend():
     sns.scatterplot(x=[1], y=[1], c=['orangered'], label='Stickiness')
     plt.legend(title='Perceptual dimension')
     plt.savefig('../individual_figures/metric_legend.svg', dpi=600)
+
+def data_legend():
+    fig = plt.figure(constrained_layout=True, dpi=600, figsize=(6.85, 6.85))
+    plt.rcParams.update({'font.size': 6.5})
+    plt.rcParams["font.family"] = "Arial"
+    gs = GridSpec(1, 1, figure=fig)
+
+    ax = fig.add_subplot(gs[0])
+    sns.scatterplot(x=[1], y=[1], ax=ax, marker='x', label='Between-participants')
+    sns.scatterplot(x=[1], y=[1], ax=ax, marker='o', label='Between-conditions')
+    plt.legend(title='Correlation')
+    plt.savefig('../individual_figures/data_legend.svg', dpi=600)
 
 
 def correlation_comparison_stats():
