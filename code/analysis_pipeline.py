@@ -69,6 +69,9 @@ mean_rank_textures(df)
 # plot mean rating across all conditions with significance indicators
 mean_ratio_textures(df)
 
+# print minimum and maximum mean ration per condition-metric combination
+mean_ratio_spread(df)
+
 # calculate correlations for each metric within conditions
 correlate_metrics_within_conditions(df)
 

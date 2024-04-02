@@ -769,6 +769,24 @@ def mean_ratio_textures(df):
     plt.savefig('../individual_figures/mean_ratio_per_texture.svg', dpi=600)
 
 
+def mean_ratio_spread(df):
+
+    av = df.groupby(['Condition','Metric','Texture']).mean().to_csv('../processed_data/averaged_over_textures.csv')
+
+    df_av = pd.read_csv('../processed_data/averaged_over_textures.csv')
+
+    for metric in metrics:
+
+        for condition in conditions:
+
+            df_cond = df_av[(df_av['Metric'] == metric) & (df_av['Condition'] == condition)]
+
+            print(metric, ' - ', condition, '- min: ', df_cond['Mean ratio'].min())
+            print(metric, ' - ', condition, '- max: ', df_cond['Mean ratio'].max())
+
+            print(metric, ' - ', condition, '- ratio: ', (df_cond['Mean ratio'].max() / df_cond['Mean ratio'].min()))
+
+
 def mean_rank_textures(df):
     """ Plot the mean ratio scores per texture, including responses from each participant
     Significant Friedman's are indicated on plot
