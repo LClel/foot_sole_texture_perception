@@ -2080,15 +2080,15 @@ def correlation_comparison_stats():
     slipperiness_cond_mean_r = slipperiness_cond['r'].mean()
 
     print("------------------------------------------------------------------------------------------------")
-    print('differences in correlations of roughness between-participans and between-conditions: ',
+    print('differences in correlations of roughness between-participants and between-conditions: ',
           independent_corr(roughness_ppt_mean_r, roughness_cond_mean_r, roughness_ppt.shape[0], roughness_cond.shape[0], method='fisher'))
 
     print("------------------------------------------------------------------------------------------------")
-    print('differences in correlations of hardness between-participans and between-conditions: ',
+    print('differences in correlations of hardness between-participants and between-conditions: ',
           independent_corr(hardness_ppt_mean_r, hardness_cond_mean_r, hardness_ppt.shape[0], hardness_cond.shape[0], method='fisher'))
 
     print("------------------------------------------------------------------------------------------------")
-    print('differences in correlations of slipperiness between-participans and between-conditions: ',
+    print('differences in correlations of slipperiness between-participants and between-conditions: ',
           independent_corr(slipperiness_ppt_mean_r, slipperiness_cond_mean_r, slipperiness_ppt.shape[0], slipperiness_cond.shape[0], method='fisher'))
 
     print("------------------------------------------------------------------------------------------------")
