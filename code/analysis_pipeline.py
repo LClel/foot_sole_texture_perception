@@ -9,7 +9,6 @@ import scipy.stats
 import seaborn as sns
 from analysis_functions import *
 
-
 # calculate and print participant mean (std) age
 participant_demographics()
 
@@ -23,6 +22,10 @@ participant_demographics()
 
 # load in dataframe with all participant data
 df = pd.read_csv('../processed_data/collated_data.csv')
+
+
+# calculate difference between scores in each condition-metric combination
+stats_scores_over_trials(df)
 
 # calculate average intersubject correlation for each condition-metric combination
 average_intersubject_correlation(df)
