@@ -314,12 +314,6 @@ def stats_scores_over_trials(df):
 
                 if (condition == 'hand') and (metric == 'slipperiness') and (i==13):
 
-                    print(trial_1)
-                    print(trial_2)
-                    print(trial_3)
-                    print(df_texture[['Participant','Trial','Ratio']])
-                    #exit()
-
                 trial_1 = df_texture[df_texture['Trial'] == 1.]['Ratio']
                 trial_2 = df_texture[df_texture['Trial'] == 2.]['Ratio']
                 trial_3 = df_texture[df_texture['Trial'] == 3.]['Ratio']
