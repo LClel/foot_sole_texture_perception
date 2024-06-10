@@ -312,8 +312,6 @@ def stats_scores_over_trials(df):
 
                 df_texture = df_combination[df_combination['Texture'] == i]
 
-                if (condition == 'hand') and (metric == 'slipperiness') and (i==13):
-
                 trial_1 = df_texture[df_texture['Trial'] == 1.]['Ratio']
                 trial_2 = df_texture[df_texture['Trial'] == 2.]['Ratio']
                 trial_3 = df_texture[df_texture['Trial'] == 3.]['Ratio']
@@ -1004,7 +1002,7 @@ def mean_rank_textures(df):
     sns.despine(ax=ax6)
     ax6.set_xticks([0,2,4])
     ax6.set_ylim(0, 0.27)
-    ax6.set_xlabel('Rating', fontsize=8)
+    ax6.set_xlabel('Perceptual rating', fontsize=8)
     ax6.set_ylabel('Density', fontsize=8)
 
     # space subplots
@@ -1353,9 +1351,9 @@ def multiple_regression(df):
     ax3.set_yticks([0, 1, 2])
     #ax3.set_xlabel('Slippery - sticky', fontsize=8)
     #ax3.set_ylabel('Mean ratio\nUnstable to Stable', fontsize=8)
-    ax3.set_ylabel('Mean ratio\nUnstable to Stable', fontsize=8)
+    ax3.set_ylabel('Perceptual rating\nUnstable to Stable', fontsize=8)
     ax3.set_title('Stickiness', fontsize=9)
-    ax3.set_xlabel('Slippery to Sticky\nMean ratio', fontsize=8)
+    ax3.set_xlabel('Slippery to Sticky\nPerceptual rating', fontsize=8)
     popt, pcov = curve_fit(func, slipperiness, stability, maxfev=10000)
     x = np.arange(np.min(slipperiness), 3.5, 0.25)
     y = func(x, popt[0], popt[1])#, popt[2])#, popt[3])
@@ -1374,8 +1372,8 @@ def multiple_regression(df):
     ax4.set_ylim(0, 2)
     ax4.set_xticks([0, 1, 2])
     ax4.set_yticks([0, 1, 2])
-    ax4.set_ylabel('Actual rating', fontsize=8)
-    ax4.set_xlabel('Unstable to Stable\nPredicted rating', fontsize=8)
+    ax4.set_ylabel('Actual perceptual rating', fontsize=8)
+    ax4.set_xlabel('Unstable to Stable\nPredicted perceptual rating', fontsize=8)
     ax4.set_title('Final regression model', fontsize=9)
     popt, pcov = curve_fit(func, stability, predicted, maxfev=10000)
     x = np.arange(np.min(stability), 3.5, 0.25)
@@ -2073,6 +2071,34 @@ def correlation_comparison():
     plt.savefig('../individual_figures/correlation_comparison3.png', bbox_inches='tight', dpi=600)
     plt.savefig('../individual_figures/correlation_comparison3.svg', bbox_inches='tight', dpi=600)
 
+
+def compare_correlations_between_conditions_participant_level():
+
+    df = pd.read_csv('../stats_output/ppt_single_value_per_texture_correlating_metrics_between_conditions2.csv')
+
+    comparisons = [['walking','sitting'], ['walking', 'hand'], ['sitting','hand']]
+    comparisons = {'walking':  ['sitting', 'hand'],
+                   'sitting': ['walking', 'hand'],
+                   'hand': ['walking','sitting']}
+
+    df = df[df['participant'] != 'PPT_012']
+
+    # loop through metrics
+    for metric in metrics[:-1]:
+
+        for comparison in comparisons:
+
+            df_comparison1 = df[(df['Metric'] == metric) & (df['covariate1'] == comparison) & \
+                               (df['covariate2'] == comparisons[comparison][0])]
+
+
+            df_comparison2 = df[(df['Metric'] == metric) & (df['covariate1'] == comparison) & \
+                                (df['covariate2'] == comparisons[comparison][1])]
+
+
+            t_test = stats.ttest_rel(np.array(df_comparison2['r']), np.array(df_comparison1['r']))
+            print(metric, ' - difference between ', comparison, '-', comparisons[comparison][0], ' and ', \
+                  comparison, '-', comparisons[comparison][1], ': ', t_test)
 
 
 def metric_legend():

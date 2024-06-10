@@ -39,6 +39,9 @@ spread_of_scores_between_conditions(df)
 # compare between and within participant correlations
 correlation_comparison_stats()
 
+# compare between and between conditions correlations
+compare_correlations_between_conditions_participant_level()
+
 # plot rank per texture across conditions
 tidy_rank_per_condition(df)
 
