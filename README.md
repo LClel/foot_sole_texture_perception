@@ -37,10 +37,10 @@ All code within this repository is authored by Luke Cleland unless otherwise spe
 ## Versions:
 * Python 3.8.5
 * Numpy 1.19.1
-* Pandas 1.1.2
+* Pandas 2.0.3
 * Matplotlib 3.3.1
 * Seaborn 0.11.1
-* Scipy 1.6.1
+* Scipy 1.10.1
 * Scikit-learn - 0.23.2    
 
 ## Acknowledgements
