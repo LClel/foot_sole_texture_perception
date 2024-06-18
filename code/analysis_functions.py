@@ -2053,10 +2053,10 @@ def correlation_comparison():
     palette2 = ['limegreen', 'royalblue', 'orangered']
     sns.set_palette(palette2)
     sns.pointplot(data=plot_ppt, x='Dimension', y='r', marker='-', join=False,
-                  markers='x', markersize=25, errorbar=('ci', 0), errwidth=0, legend=False, scale=1, ax=ax2, hue='Dimension',\
+                  markers='o', markersize=25, errorbar=('ci', 0), errwidth=0, legend=False, scale=1, ax=ax2, hue='Dimension',\
                   order=['roughness', 'hardness', 'slipperiness', 'dummy'])
     sns.pointplot(data=plot_inter, x='Dimension', y='r', marker='-', join=False,
-                  markers='o', markersize=25, errorbar=('ci', 0), errwidth=0, legend=False, scale=1, ax=ax2, hue='Dimension',\
+                  markers='x', markersize=25, errorbar=('ci', 0), errwidth=0, legend=False, scale=1, ax=ax2, hue='Dimension',\
                   order=['roughness', 'hardness', 'slipperiness','dummy'])
     ax2.set_ylim(0.5, 1.0)
     ax2.set_yticks([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
@@ -2121,8 +2121,8 @@ def data_legend():
     gs = GridSpec(1, 1, figure=fig)
 
     ax = fig.add_subplot(gs[0])
-    sns.scatterplot(x=[1], y=[1], ax=ax, marker='x', label='Between-participants')
-    sns.scatterplot(x=[1], y=[1], ax=ax, marker='o', label='Between-conditions')
+    sns.scatterplot(x=[1], y=[1], ax=ax, marker='o', label='Between-participants')
+    sns.scatterplot(x=[1], y=[1], ax=ax, marker='x', label='Between-conditions')
     plt.legend(title='Correlation')
     plt.savefig('../individual_figures/data_legend.svg', dpi=600)
 
