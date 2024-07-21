@@ -1,8 +1,7 @@
 # The code and data related to the paper titled "Texture perception at the foot sole"
-Preprint is available at BioRxiv, DOI: 
 
 ### Reference
-Cleland, L. D., Rupani, M., Blaise, C. R., Elmmers, T. J., & Saal, H. P. (2024). Texture perception at the foot sole: Comparison between walking, sitting, and the hand. BioRxiv.
+Cleland, L. D., Rupani, M., Blaise, C. R., Elmmers, T. J., & Saal, H. P. (2024). Texture perception at the foot sole: Comparison between walking, sitting, and the hand. Journal of Neurophysiology. DOI: 10.1152/jn.00170.2024.
 
 ## Paper authors:
 * Luke D Cleland<sup>1,2,3*</sup> - ldcleland1@sheffield.ac.uk - repository manager - ORCID ID: 0000-0001-8486-2780
